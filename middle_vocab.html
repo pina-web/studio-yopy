@@ -1,0 +1,2189 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>📖 중등 영단어 마스터</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { height: 100%; overflow-x: hidden; }
+  body {
+    font-family: "Comfortaa", "Pretendard", -apple-system, BlinkMacSystemFont, sans-serif;
+    background: linear-gradient(180deg, #FFF5E6 0%, #FFE8F0 50%, #F0E8FF 100%);
+    color: #2D3748;
+    min-height: 100vh;
+    padding-bottom: 40px;
+  }
+  #app { max-width: 560px; margin: 0 auto; padding: 0 16px 40px; }
+  button { font-family: inherit; cursor: pointer; border: none; background: none; color: inherit; }
+  button:active:not(:disabled) { transform: scale(0.97); }
+  button:disabled { opacity: 0.4; cursor: not-allowed; }
+  input { font-family: inherit; }
+
+  /* 상단바 */
+  .topbar {
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(12px);
+    border-bottom: 2px solid rgba(255, 158, 199, 0.2);
+    padding: 12px 16px; margin-bottom: 16px;
+  }
+  .topbar-inner { max-width: 560px; margin: 0 auto; display: flex; align-items: center; gap: 12px; }
+  .progress-section { flex: 1; }
+  .progress-label { display: flex; align-items: center; gap: 6px; margin-bottom: 6px; font-size: 13px; font-weight: 700; color: #555; }
+  .progress-percent { margin-left: auto; font-size: 15px; font-weight: 800; color: #FF6B35; }
+  .progress-bar-bg { position: relative; height: 10px; background: #FFF0E0; border-radius: 10px; overflow: hidden; }
+  .progress-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #FFB84D, #FF6B35, #FF9EC7);
+    border-radius: 10px;
+    transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .progress-shimmer {
+    position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.5), transparent);
+    animation: shimmer 2s infinite;
+  }
+  .progress-stats { font-size: 11px; color: #777; margin-top: 4px; display: flex; gap: 6px; }
+  .progress-stats b { font-weight: 800; }
+  .streak-badge {
+    display: flex; align-items: baseline; gap: 3px;
+    background: linear-gradient(135deg, #FFF0E0, #FFE4D0);
+    padding: 6px 12px; border-radius: 16px;
+    border: 2px solid #FFB84D;
+  }
+  .streak-num { font-size: 18px; font-weight: 800; color: #FF6B35; }
+  .streak-label { font-size: 11px; font-weight: 700; color: #FF6B35; }
+
+  /* 화면 공통 */
+  .screen { animation: fadeIn 0.4s ease; }
+
+  /* 홈 */
+  .hero { text-align: center; padding: 16px 0 20px; }
+  .hero-emoji { font-size: 56px; margin-bottom: 8px; animation: bounce 2s infinite; }
+  .hero-title { font-size: 30px; font-weight: 800; letter-spacing: -0.5px; }
+  .hero-subtitle { font-size: 13px; color: #718096; margin-top: 4px; }
+
+  /* 오늘의 학습 카드 */
+  .daily-card {
+    background: linear-gradient(135deg, #FF9EC7, #FF6B35);
+    color: white;
+    border-radius: 24px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 10px 24px rgba(255, 107, 53, 0.25);
+    position: relative;
+    overflow: hidden;
+  }
+  .daily-card::before {
+    content: ''; position: absolute; top: -40px; right: -40px;
+    width: 140px; height: 140px; background: rgba(255,255,255,0.15); border-radius: 50%;
+  }
+  .daily-card::after {
+    content: ''; position: absolute; bottom: -30px; left: -30px;
+    width: 100px; height: 100px; background: rgba(255,255,255,0.1); border-radius: 50%;
+  }
+  .daily-label { font-size: 12px; font-weight: 700; opacity: 0.9; letter-spacing: 0.05em; position: relative; }
+  .daily-title { font-size: 22px; font-weight: 800; margin-top: 4px; position: relative; }
+  .daily-info { display: flex; gap: 14px; margin-top: 12px; position: relative; }
+  .daily-stat { display: flex; align-items: baseline; gap: 4px; }
+  .daily-stat-num { font-size: 24px; font-weight: 800; }
+  .daily-stat-label { font-size: 12px; opacity: 0.95; }
+  .daily-btn {
+    width: 100%; margin-top: 14px; padding: 14px;
+    background: white; color: #FF6B35;
+    border-radius: 14px; font-size: 15px; font-weight: 800;
+    position: relative;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+  }
+  .daily-done {
+    background: rgba(255,255,255,0.25); color: white;
+    border: 2px solid rgba(255,255,255,0.5);
+  }
+
+  /* 마스터 리스트 버튼 */
+  .master-btn {
+    width: 100%; padding: 14px 18px;
+    background: linear-gradient(135deg, #667EEA, #764BA2);
+    color: white; border-radius: 18px;
+    font-size: 14px; font-weight: 700;
+    display: flex; align-items: center; gap: 10px;
+    margin-bottom: 24px;
+    box-shadow: 0 6px 14px rgba(102, 126, 234, 0.25);
+  }
+  .master-btn-arrow { margin-left: auto; font-size: 18px; }
+
+  /* 섹션 제목 */
+  .section-title { display: flex; align-items: center; gap: 8px; margin: 22px 0 12px; }
+  .section-emoji { font-size: 20px; }
+  .section-title h2 { font-size: 16px; font-weight: 800; }
+  .section-line { flex: 1; height: 2px; background: linear-gradient(90deg, rgba(255,184,77,0.3), transparent); border-radius: 2px; }
+
+  /* 레벨 카드 */
+  .level-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+  .level-card {
+    border-radius: 20px; padding: 16px; text-align: left; color: white;
+    box-shadow: 0 6px 16px rgba(0,0,0,0.12);
+    min-height: 130px;
+    display: flex; flex-direction: column;
+    transition: transform 0.2s;
+  }
+  .level-card:active { transform: scale(0.96); }
+  .level-card-top { display: flex; justify-content: space-between; align-items: start; }
+  .level-icon { font-size: 32px; }
+  .completed-badge {
+    font-size: 10px; font-weight: 800;
+    background: rgba(255,255,255,0.3);
+    padding: 3px 8px; border-radius: 10px;
+  }
+  .level-name { font-size: 15px; font-weight: 800; margin-top: 8px; }
+  .level-count { font-size: 12px; opacity: 0.9; margin-top: 2px; margin-bottom: 10px; }
+  .level-progress-bg { margin-top: auto; height: 6px; background: rgba(255,255,255,0.3); border-radius: 6px; overflow: hidden; }
+  .level-progress-fill { height: 100%; background: white; border-radius: 6px; transition: width 0.6s; }
+
+  /* 뒤로가기 헤더 */
+  .back-header { display: flex; align-items: center; gap: 12px; padding: 4px 0 16px; }
+  .back-btn {
+    width: 40px; height: 40px; border-radius: 12px;
+    background: white; display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08); font-size: 20px;
+  }
+  .back-header-title { font-size: 18px; font-weight: 800; }
+  .back-header-sub { font-size: 12px; color: #718096; margin-top: 2px; }
+
+  /* 학습 진행바 */
+  .learn-progress-bg { height: 6px; background: #FFF0E0; border-radius: 6px; overflow: hidden; margin-bottom: 20px; }
+  .learn-progress-fill { height: 100%; border-radius: 6px; transition: width 0.4s; }
+
+  /* 파닉스 카드 */
+  .phonics-card {
+    border-radius: 28px; padding: 36px 24px; text-align: center;
+    border: 3px solid rgba(255,255,255,0.6);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+  }
+  .phonics-letter { font-size: 84px; font-weight: 800; letter-spacing: 0.05em; line-height: 1; }
+  .phonics-sound { font-size: 26px; color: #FF6B35; font-weight: 700; margin-top: 6px; }
+  .sound-btn {
+    margin-top: 18px; padding: 10px 20px;
+    background: white; border: 2px solid #FFB84D;
+    border-radius: 14px; font-size: 13px; font-weight: 700; color: #FF6B35;
+    display: inline-flex; align-items: center; gap: 6px;
+  }
+  .phonics-divider { height: 1px; background: rgba(0,0,0,0.1); margin: 22px 30px; }
+  .phonics-example { font-size: 30px; font-weight: 700; }
+  .phonics-meaning { font-size: 17px; color: #718096; margin-top: 4px; }
+
+  /* 단어 플립 카드 */
+  .word-card-container { perspective: 1000px; height: 340px; margin-bottom: 16px; }
+  .word-card {
+    position: relative; width: 100%; height: 100%;
+    transform-style: preserve-3d;
+    transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+  }
+  .word-card.flipped { transform: rotateY(180deg); }
+  .word-card-face {
+    position: absolute; width: 100%; height: 100%;
+    backface-visibility: hidden; -webkit-backface-visibility: hidden;
+    border-radius: 28px; padding: 24px;
+    box-shadow: 0 12px 28px rgba(0,0,0,0.12);
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+  }
+  .word-card-front { color: white; }
+  .word-card-back {
+    transform: rotateY(180deg);
+    background: linear-gradient(135deg, #fff 0%, #f8f5ff 100%);
+  }
+  .mastery-stars { position: absolute; top: 16px; right: 16px; display: flex; gap: 3px; }
+  .star { font-size: 16px; }
+  .word-text { font-size: 46px; font-weight: 800; letter-spacing: -0.02em; text-align: center; word-break: break-word; }
+  .word-sound-btn {
+    margin-top: 18px; width: 56px; height: 56px;
+    border-radius: 50%; border: 3px solid rgba(255,255,255,0.5);
+    background: rgba(255,255,255,0.2); color: white; font-size: 24px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .flip-hint { position: absolute; bottom: 16px; font-size: 12px; opacity: 0.85; font-weight: 600; }
+  .meaning-label { font-size: 11px; font-weight: 700; color: #FF6B35; text-transform: uppercase; letter-spacing: 0.1em; }
+  .meaning-text { font-size: 36px; font-weight: 800; margin-top: 8px; text-align: center; }
+  .example-box {
+    margin-top: 20px; background: #fff8f0;
+    padding: 14px 18px; border-radius: 14px;
+    border: 2px solid #FFE4D0; width: 100%; position: relative;
+  }
+  .example-label { font-size: 10px; font-weight: 700; color: #FF6B35; text-transform: uppercase; letter-spacing: 0.1em; }
+  .example-text { font-size: 14px; margin-top: 4px; font-weight: 600; line-height: 1.4; padding-right: 32px; }
+  .example-sound-btn {
+    position: absolute; top: 10px; right: 10px;
+    width: 30px; height: 30px; border-radius: 50%;
+    background: #FFB84D; color: white; font-size: 14px;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  /* 네비 버튼 */
+  .nav-btns { display: flex; gap: 10px; margin-top: 20px; }
+  .nav-btn {
+    flex: 1; padding: 14px;
+    border-radius: 16px; background: white;
+    font-size: 14px; font-weight: 700; color: #555;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+  }
+  .nav-btn-primary {
+    background: linear-gradient(135deg, #FF9EC7, #FF6B35);
+    color: white;
+    box-shadow: 0 6px 16px rgba(255, 107, 53, 0.3);
+  }
+
+  /* 퀴즈 */
+  .quiz-score {
+    display: flex; align-items: center; gap: 8px;
+    background: white; padding: 10px 16px;
+    border-radius: 16px; margin-bottom: 16px;
+    font-size: 13px; color: #555; font-weight: 600;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  }
+  .quiz-card {
+    background: white; border-radius: 22px; padding: 22px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+  }
+  .quiz-type-label {
+    font-size: 12px; font-weight: 700; color: #FF6B35;
+    text-align: center; margin-bottom: 18px; letter-spacing: 0.05em;
+  }
+  .quiz-question { text-align: center; margin-bottom: 22px; display: flex; flex-direction: column; align-items: center; gap: 8px; }
+  .question-text { font-size: 32px; font-weight: 800; padding: 8px 0; word-break: break-word; }
+  .small-sound-btn {
+    width: 34px; height: 34px; border-radius: 50%;
+    border: 2px solid #FFB84D; background: white; color: #FF6B35;
+    font-size: 16px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .big-sound-btn {
+    width: 100%; padding: 22px; border-radius: 18px;
+    background: linear-gradient(135deg, #667EEA, #764BA2);
+    color: white; font-size: 15px; font-weight: 700;
+    display: flex; flex-direction: column; align-items: center; gap: 6px;
+  }
+  .big-sound-btn .icon { font-size: 36px; }
+
+  .choices { display: flex; flex-direction: column; gap: 10px; }
+  .choice-btn {
+    display: flex; align-items: center; gap: 12px;
+    padding: 14px 16px; border: 2px solid #e5e7eb;
+    border-radius: 14px; background: white;
+    font-size: 15px; font-weight: 600; text-align: left;
+    transition: all 0.2s;
+  }
+  .choice-btn.correct { background: #E8F8EF; border-color: #2EC27E; color: #166534; }
+  .choice-btn.wrong { background: #FEE2E2; border-color: #EF4444; color: #991B1B; }
+  .choice-btn.disabled-choice { background: #fafafa; color: #999; }
+  .choice-number {
+    width: 26px; height: 26px; border-radius: 50%;
+    background: #f3f4f6; font-size: 12px; font-weight: 800;
+    display: flex; align-items: center; justify-content: center;
+    color: #666; flex-shrink: 0;
+  }
+  .choice-text { flex: 1; }
+  .choice-mark { font-size: 18px; font-weight: 800; }
+
+  .spelling-input {
+    width: 100%; padding: 14px 18px;
+    font-size: 20px; font-weight: 600;
+    border: 2px solid #e5e7eb; border-radius: 14px;
+    outline: none; text-align: center;
+    transition: border-color 0.2s;
+  }
+  .spelling-input.correct { border-color: #2EC27E; }
+  .spelling-input.wrong { border-color: #EF4444; }
+  .submit-btn {
+    margin-top: 10px; width: 100%; padding: 12px;
+    background: linear-gradient(135deg, #FF9EC7, #FF6B35);
+    color: white; border-radius: 12px;
+    font-size: 14px; font-weight: 700;
+  }
+  .correct-answer-box {
+    margin-top: 10px; padding: 10px;
+    background: #FEF3C7; border-radius: 10px;
+    font-size: 13px; color: #92400E; text-align: center;
+  }
+
+  /* 피드백 바 */
+  .feedback-bar {
+    margin-top: 14px; background: white;
+    padding: 14px; border-radius: 18px;
+    box-shadow: 0 6px 16px rgba(0,0,0,0.08);
+    display: flex; flex-direction: column; gap: 10px;
+    animation: slideUp 0.3s ease;
+  }
+  .feedback-msg {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 14px; justify-content: center;
+  }
+  .feedback-btn {
+    padding: 12px;
+    background: linear-gradient(135deg, #FF9EC7, #FF6B35);
+    color: white; border-radius: 12px;
+    font-size: 14px; font-weight: 700;
+  }
+
+  /* 결과 화면 */
+  .result-container {
+    background: white; border-radius: 26px; padding: 28px;
+    text-align: center; box-shadow: 0 12px 32px rgba(0,0,0,0.1);
+    animation: popIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  .result-emoji { font-size: 72px; margin-bottom: 6px; animation: bounce 1.5s infinite; }
+  .result-title { font-size: 26px; font-weight: 800; }
+  .result-score { margin-top: 14px; margin-bottom: 4px; }
+  .result-score-num { font-size: 50px; font-weight: 800; color: #FF6B35; }
+  .result-score-total { font-size: 24px; font-weight: 700; color: #a0aec0; }
+  .result-pct { font-size: 15px; color: #718096; font-weight: 600; }
+  .result-progress-bg { margin-top: 18px; height: 12px; background: #f3f4f6; border-radius: 12px; overflow: hidden; }
+  .result-progress-fill { height: 100%; background: linear-gradient(90deg, #FF9EC7, #FF6B35); border-radius: 12px; transition: width 1s cubic-bezier(0.4, 0, 0.2, 1); }
+  .wrong-section {
+    margin-top: 20px; text-align: left;
+    background: #FFF8F0; padding: 14px;
+    border-radius: 14px; border: 2px solid #FFE4D0;
+  }
+  .wrong-title { display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 800; color: #FF6B35; margin-bottom: 10px; }
+  .wrong-list { display: flex; flex-direction: column; gap: 6px; }
+  .wrong-item {
+    display: flex; justify-content: space-between;
+    padding: 8px 12px; background: white;
+    border-radius: 10px; font-size: 14px;
+  }
+  .wrong-word { font-weight: 700; }
+  .wrong-meaning { color: #718096; font-weight: 500; }
+  .perfect-badge {
+    margin-top: 18px; padding: 10px 14px;
+    background: linear-gradient(135deg, #FFF8E1, #FFE4D0);
+    border: 2px solid #FFB84D; border-radius: 14px;
+    font-size: 13px; font-weight: 700; color: #B45309;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+  }
+  .result-btns { margin-top: 20px; display: flex; gap: 10px; }
+  .result-btn {
+    flex: 1; padding: 13px; border-radius: 12px;
+    font-size: 14px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+  }
+  .result-btn-primary {
+    background: linear-gradient(135deg, #FF9EC7, #FF6B35);
+    color: white; box-shadow: 0 6px 14px rgba(255, 107, 53, 0.3);
+  }
+  .result-btn-secondary { background: white; color: #555; border: 2px solid #e5e7eb; }
+
+  /* 마스터 리스트 */
+  .filter-tabs { display: flex; gap: 8px; margin-bottom: 16px; overflow-x: auto; padding-bottom: 4px; }
+  .filter-tabs::-webkit-scrollbar { display: none; }
+  .filter-tab {
+    padding: 8px 14px; border: 2px solid #e5e7eb;
+    border-radius: 12px; background: white;
+    font-size: 13px; font-weight: 700; color: #666;
+    white-space: nowrap;
+  }
+  .filter-tab.active { color: white; }
+  .word-list { display: flex; flex-direction: column; gap: 10px; }
+  .word-item {
+    background: white; border-radius: 14px; padding: 12px;
+    display: flex; gap: 10px; align-items: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  }
+  .word-item-badge {
+    font-size: 9px; font-weight: 800; color: white;
+    padding: 4px 8px; border-radius: 8px;
+    white-space: nowrap;
+  }
+  .word-item-main { flex: 1; min-width: 0; }
+  .word-item-head { display: flex; align-items: center; gap: 8px; }
+  .word-item-word { font-size: 16px; font-weight: 800; }
+  .word-item-sound {
+    width: 24px; height: 24px; border-radius: 50%;
+    background: #FFE4D0; color: #FF6B35; font-size: 12px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .word-item-meaning { font-size: 13px; color: #4A5568; font-weight: 600; margin-top: 2px; }
+  .word-item-status { display: flex; flex-direction: column; align-items: end; gap: 4px; }
+  .mastered-tag {
+    font-size: 10px; font-weight: 800; color: #166534;
+    background: #E8F8EF; padding: 4px 8px; border-radius: 8px;
+  }
+  .new-tag {
+    font-size: 10px; font-weight: 700; color: #718096;
+    background: #f3f4f6; padding: 4px 8px; border-radius: 8px;
+  }
+  .empty-state { text-align: center; padding: 50px 16px; background: white; border-radius: 20px; }
+  .empty-emoji { font-size: 50px; margin-bottom: 10px; }
+  .empty-text { font-size: 14px; color: #718096; white-space: pre-line; line-height: 1.5; font-weight: 600; }
+
+  /* 설정 버튼 */
+  .reset-btn {
+    width: 100%; margin-top: 30px; padding: 10px;
+    background: #fafafa; color: #999; font-size: 11px;
+    border-radius: 10px; border: 1px solid #eee;
+  }
+
+  /* 애니메이션 */
+  @keyframes shimmer { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+  @keyframes popIn { 0% { opacity: 0; transform: scale(0.85); } 100% { opacity: 1; transform: scale(1); } }
+  @keyframes slideUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<script>
+// ====================================================================
+// 단어 데이터베이스 - 파닉스 26 + 초등 600개
+// ====================================================================
+
+const PHONICS_DATA = [
+  { letter: 'A a', sound: '애', example: 'apple', meaning: '사과' },
+  { letter: 'B b', sound: '브', example: 'ball', meaning: '공' },
+  { letter: 'C c', sound: '크', example: 'cat', meaning: '고양이' },
+  { letter: 'D d', sound: '드', example: 'dog', meaning: '개' },
+  { letter: 'E e', sound: '에', example: 'egg', meaning: '달걀' },
+  { letter: 'F f', sound: '프', example: 'fish', meaning: '물고기' },
+  { letter: 'G g', sound: '그', example: 'goat', meaning: '염소' },
+  { letter: 'H h', sound: '흐', example: 'hat', meaning: '모자' },
+  { letter: 'I i', sound: '이', example: 'ink', meaning: '잉크' },
+  { letter: 'J j', sound: '즈', example: 'jam', meaning: '잼' },
+  { letter: 'K k', sound: '크', example: 'kite', meaning: '연' },
+  { letter: 'L l', sound: '르', example: 'lion', meaning: '사자' },
+  { letter: 'M m', sound: '므', example: 'moon', meaning: '달' },
+  { letter: 'N n', sound: '느', example: 'nest', meaning: '둥지' },
+  { letter: 'O o', sound: '오', example: 'octopus', meaning: '문어' },
+  { letter: 'P p', sound: '프', example: 'pig', meaning: '돼지' },
+  { letter: 'Q q', sound: '쿠', example: 'queen', meaning: '여왕' },
+  { letter: 'R r', sound: '르', example: 'rabbit', meaning: '토끼' },
+  { letter: 'S s', sound: '스', example: 'sun', meaning: '해' },
+  { letter: 'T t', sound: '트', example: 'tiger', meaning: '호랑이' },
+  { letter: 'U u', sound: '어', example: 'umbrella', meaning: '우산' },
+  { letter: 'V v', sound: '브', example: 'van', meaning: '밴' },
+  { letter: 'W w', sound: '우', example: 'water', meaning: '물' },
+  { letter: 'X x', sound: '스', example: 'box', meaning: '상자' },
+  { letter: 'Y y', sound: '이', example: 'yellow', meaning: '노란색' },
+  { letter: 'Z z', sound: '즈', example: 'zebra', meaning: '얼룩말' },
+];
+
+// 초등 Level 1 (200개) - 기초 명사, 동물, 색깔, 숫자, 기본 동사
+
+// 중등 Level 1 (200개) - 중1 수준: 기본 학습/일상 확장
+const MID_L1 = [
+  // 학습/사고 (20)
+  { word: 'achieve', meaning: '성취하다, 달성하다', example: 'I want to achieve my goal.' },
+  { word: 'improve', meaning: '향상시키다', example: 'Improve your English.' },
+  { word: 'create', meaning: '창조하다, 만들다', example: 'Create something new.' },
+  { word: 'discover', meaning: '발견하다', example: 'Discover new places.' },
+  { word: 'explain', meaning: '설명하다', example: 'Can you explain this?' },
+  { word: 'describe', meaning: '묘사하다', example: 'Describe the picture.' },
+  { word: 'compare', meaning: '비교하다', example: 'Compare the two books.' },
+  { word: 'decide', meaning: '결정하다', example: 'I cannot decide.' },
+  { word: 'choose', meaning: '선택하다', example: 'Choose wisely.' },
+  { word: 'agree', meaning: '동의하다', example: 'I agree with you.' },
+  { word: 'disagree', meaning: '반대하다', example: 'He disagrees.' },
+  { word: 'consider', meaning: '고려하다', example: 'Consider the options.' },
+  { word: 'realize', meaning: '깨닫다', example: 'I realize my mistake.' },
+  { word: 'focus', meaning: '집중하다', example: 'Focus on your work.' },
+  { word: 'solve', meaning: '해결하다', example: 'Solve the problem.' },
+  { word: 'guess', meaning: '추측하다', example: 'Guess my age.' },
+  { word: 'imagine', meaning: '상상하다', example: 'Imagine the future.' },
+  { word: 'expect', meaning: '기대하다, 예상하다', example: 'I expect good news.' },
+  { word: 'plan', meaning: '계획하다', example: 'Plan ahead.' },
+  { word: 'review', meaning: '복습하다, 검토하다', example: 'Review your notes.' },
+
+  // 감정/성격 확장 (15)
+  { word: 'glad', meaning: '기쁜', example: 'I am glad to see you.' },
+  { word: 'upset', meaning: '속상한', example: 'Do not be upset.' },
+  { word: 'nervous', meaning: '긴장한', example: 'I feel nervous.' },
+  { word: 'calm', meaning: '차분한', example: 'Stay calm.' },
+  { word: 'confident', meaning: '자신감 있는', example: 'Be confident.' },
+  { word: 'curious', meaning: '호기심 많은', example: 'A curious child.' },
+  { word: 'jealous', meaning: '질투하는', example: 'Do not be jealous.' },
+  { word: 'gentle', meaning: '온화한', example: 'A gentle voice.' },
+  { word: 'cheerful', meaning: '명랑한', example: 'A cheerful girl.' },
+  { word: 'selfish', meaning: '이기적인', example: 'Do not be selfish.' },
+  { word: 'serious', meaning: '진지한', example: 'A serious problem.' },
+  { word: 'silly', meaning: '어리석은', example: 'A silly joke.' },
+  { word: 'mean', meaning: '못된, 의미하다', example: 'Do not be mean.' },
+  { word: 'rude', meaning: '무례한', example: 'That is rude.' },
+  { word: 'polite', meaning: '예의 바른', example: 'Be polite to others.' },
+
+  // 인체/건강 (15)
+  { word: 'body', meaning: '몸', example: 'Take care of your body.' },
+  { word: 'bone', meaning: '뼈', example: 'A strong bone.' },
+  { word: 'skin', meaning: '피부', example: 'Soft skin.' },
+  { word: 'muscle', meaning: '근육', example: 'Strong muscles.' },
+  { word: 'heart', meaning: '심장, 마음', example: 'My heart beats fast.' },
+  { word: 'blood', meaning: '피', example: 'Give blood.' },
+  { word: 'brain', meaning: '뇌', example: 'Use your brain.' },
+  { word: 'stomach', meaning: '배, 위', example: 'My stomach hurts.' },
+  { word: 'exercise', meaning: '운동', example: 'Daily exercise.' },
+  { word: 'diet', meaning: '식단', example: 'A healthy diet.' },
+  { word: 'calorie', meaning: '칼로리', example: 'Count calories.' },
+  { word: 'vitamin', meaning: '비타민', example: 'Vitamin C helps.' },
+  { word: 'germ', meaning: '세균', example: 'Wash germs away.' },
+  { word: 'stress', meaning: '스트레스', example: 'Reduce stress.' },
+  { word: 'breathe', meaning: '숨쉬다', example: 'Breathe deeply.' },
+
+  // 환경/사회 (20)
+  { word: 'environment', meaning: '환경', example: 'Protect the environment.' },
+  { word: 'pollution', meaning: '오염', example: 'Air pollution is bad.' },
+  { word: 'recycle', meaning: '재활용하다', example: 'We should recycle.' },
+  { word: 'nature', meaning: '자연', example: 'Love nature.' },
+  { word: 'ocean', meaning: '대양, 바다', example: 'The wide ocean.' },
+  { word: 'forest', meaning: '숲', example: 'A green forest.' },
+  { word: 'planet', meaning: '행성', example: 'Our planet Earth.' },
+  { word: 'society', meaning: '사회', example: 'Our society changes.' },
+  { word: 'culture', meaning: '문화', example: 'Korean culture.' },
+  { word: 'tradition', meaning: '전통', example: 'An old tradition.' },
+  { word: 'language', meaning: '언어', example: 'I learn languages.' },
+  { word: 'religion', meaning: '종교', example: 'Different religions.' },
+  { word: 'history', meaning: '역사', example: 'Study history.' },
+  { word: 'future', meaning: '미래', example: 'A bright future.' },
+  { word: 'past', meaning: '과거', example: 'In the past.' },
+  { word: 'present', meaning: '현재, 선물', example: 'Live in the present.' },
+  { word: 'community', meaning: '공동체', example: 'A safe community.' },
+  { word: 'nation', meaning: '국가', example: 'A great nation.' },
+  { word: 'peace', meaning: '평화', example: 'World peace.' },
+  { word: 'war', meaning: '전쟁', example: 'Stop the war.' },
+
+  // 학교/공부 확장 (15)
+  { word: 'subject', meaning: '과목, 주제', example: 'My favorite subject.' },
+  { word: 'grade', meaning: '학년, 성적', example: 'A good grade.' },
+  { word: 'score', meaning: '점수', example: 'A high score.' },
+  { word: 'homework', meaning: '숙제', example: 'Finish homework.' },
+  { word: 'exam', meaning: '시험', example: 'A big exam.' },
+  { word: 'result', meaning: '결과', example: 'Good results.' },
+  { word: 'effort', meaning: '노력', example: 'Make an effort.' },
+  { word: 'knowledge', meaning: '지식', example: 'Gain knowledge.' },
+  { word: 'skill', meaning: '기술, 실력', example: 'Useful skills.' },
+  { word: 'ability', meaning: '능력', example: 'Great ability.' },
+  { word: 'talent', meaning: '재능', example: 'Natural talent.' },
+  { word: 'practice', meaning: '연습하다', example: 'Practice daily.' },
+  { word: 'mistake', meaning: '실수', example: 'A small mistake.' },
+  { word: 'correct', meaning: '올바른, 정정하다', example: 'The correct answer.' },
+  { word: 'wrong', meaning: '틀린', example: 'A wrong answer.' },
+
+  // 일상 확장 (20)
+  { word: 'breakfast', meaning: '아침식사', example: 'Eat breakfast.' },
+  { word: 'lunch', meaning: '점심', example: 'Have lunch.' },
+  { word: 'dinner', meaning: '저녁식사', example: 'Family dinner.' },
+  { word: 'meal', meaning: '식사', example: 'A nice meal.' },
+  { word: 'dessert', meaning: '디저트', example: 'Eat dessert.' },
+  { word: 'snack', meaning: '간식', example: 'A light snack.' },
+  { word: 'recipe', meaning: '요리법', example: 'A simple recipe.' },
+  { word: 'taste', meaning: '맛, 맛보다', example: 'A good taste.' },
+  { word: 'delicious', meaning: '맛있는', example: 'So delicious.' },
+  { word: 'hungry', meaning: '배고픈', example: 'I am hungry.' },
+  { word: 'thirsty', meaning: '목마른', example: 'I am thirsty.' },
+  { word: 'fresh', meaning: '신선한', example: 'Fresh food.' },
+  { word: 'tasty', meaning: '맛있는', example: 'A tasty dish.' },
+  { word: 'sweet', meaning: '달콤한', example: 'Sweet candy.' },
+  { word: 'bitter', meaning: '쓴', example: 'Bitter coffee.' },
+  { word: 'salty', meaning: '짠', example: 'Salty chips.' },
+  { word: 'sour', meaning: '신', example: 'Sour lemons.' },
+  { word: 'spicy', meaning: '매운', example: 'Spicy noodles.' },
+  { word: 'soft', meaning: '부드러운', example: 'Soft bread.' },
+  { word: 'hard', meaning: '딱딱한, 어려운', example: 'A hard cookie.' },
+
+  // 여행/장소 (15)
+  { word: 'vacation', meaning: '방학, 휴가', example: 'Summer vacation.' },
+  { word: 'travel', meaning: '여행하다', example: 'Travel abroad.' },
+  { word: 'trip', meaning: '여행', example: 'A short trip.' },
+  { word: 'tour', meaning: '관광', example: 'A city tour.' },
+  { word: 'tourist', meaning: '관광객', example: 'Many tourists.' },
+  { word: 'passport', meaning: '여권', example: 'Show your passport.' },
+  { word: 'ticket', meaning: '표', example: 'Buy a ticket.' },
+  { word: 'luggage', meaning: '짐', example: 'Heavy luggage.' },
+  { word: 'airport', meaning: '공항', example: 'Big airport.' },
+  { word: 'abroad', meaning: '해외로', example: 'Go abroad.' },
+  { word: 'foreign', meaning: '외국의', example: 'Foreign country.' },
+  { word: 'journey', meaning: '여정', example: 'A long journey.' },
+  { word: 'adventure', meaning: '모험', example: 'A great adventure.' },
+  { word: 'guide', meaning: '안내자, 안내하다', example: 'A tour guide.' },
+  { word: 'map', meaning: '지도', example: 'Read the map.' },
+
+  // 동사 확장 (30)
+  { word: 'arrive', meaning: '도착하다', example: 'Arrive on time.' },
+  { word: 'leave', meaning: '떠나다', example: 'Leave now.' },
+  { word: 'return', meaning: '돌아오다', example: 'Return home.' },
+  { word: 'bring', meaning: '가져오다', example: 'Bring a book.' },
+  { word: 'carry', meaning: '나르다', example: 'Carry the box.' },
+  { word: 'hold', meaning: '잡다, 들다', example: 'Hold my hand.' },
+  { word: 'fall', meaning: '떨어지다', example: 'Leaves fall.' },
+  { word: 'rise', meaning: '떠오르다', example: 'The sun rises.' },
+  { word: 'happen', meaning: '발생하다', example: 'What happened?' },
+  { word: 'seem', meaning: '보이다, ~인 듯하다', example: 'It seems good.' },
+  { word: 'become', meaning: '되다', example: 'Become a doctor.' },
+  { word: 'continue', meaning: '계속하다', example: 'Continue your work.' },
+  { word: 'allow', meaning: '허락하다', example: 'Allow me to help.' },
+  { word: 'follow', meaning: '따라가다', example: 'Follow the leader.' },
+  { word: 'lead', meaning: '이끌다', example: 'Lead the team.' },
+  { word: 'share', meaning: '공유하다, 나누다', example: 'Share your toys.' },
+  { word: 'spend', meaning: '쓰다, 보내다', example: 'Spend time together.' },
+  { word: 'add', meaning: '더하다', example: 'Add salt.' },
+  { word: 'remove', meaning: '제거하다', example: 'Remove the dust.' },
+  { word: 'include', meaning: '포함하다', example: 'Include everyone.' },
+  { word: 'control', meaning: '통제하다', example: 'Control yourself.' },
+  { word: 'accept', meaning: '받아들이다', example: 'Accept the gift.' },
+  { word: 'refuse', meaning: '거절하다', example: 'Refuse politely.' },
+  { word: 'invite', meaning: '초대하다', example: 'Invite friends.' },
+  { word: 'prepare', meaning: '준비하다', example: 'Prepare dinner.' },
+  { word: 'protect', meaning: '보호하다', example: 'Protect animals.' },
+  { word: 'cause', meaning: '야기하다, 원인', example: 'Cause trouble.' },
+  { word: 'matter', meaning: '문제, 중요하다', example: 'It does not matter.' },
+  { word: 'promise', meaning: '약속하다', example: 'I promise.' },
+  { word: 'thank', meaning: '감사하다', example: 'Thank you.' },
+
+  // 성공/실패 (10)
+  { word: 'success', meaning: '성공', example: 'Wish you success.' },
+  { word: 'fail', meaning: '실패하다', example: 'Do not fail.' },
+  { word: 'win', meaning: '이기다', example: 'Win the game.' },
+  { word: 'lose', meaning: '지다, 잃다', example: 'Do not lose hope.' },
+  { word: 'prize', meaning: '상', example: 'Win a prize.' },
+  { word: 'reward', meaning: '보상', example: 'A big reward.' },
+  { word: 'goal', meaning: '목표', example: 'Set a goal.' },
+  { word: 'challenge', meaning: '도전', example: 'A big challenge.' },
+  { word: 'chance', meaning: '기회', example: 'Last chance.' },
+  { word: 'risk', meaning: '위험', example: 'Take a risk.' },
+
+  // 물건/도구 (15)
+  { word: 'tool', meaning: '도구', example: 'A useful tool.' },
+  { word: 'machine', meaning: '기계', example: 'A washing machine.' },
+  { word: 'engine', meaning: '엔진', example: 'A car engine.' },
+  { word: 'wheel', meaning: '바퀴', example: 'Four wheels.' },
+  { word: 'material', meaning: '재료', example: 'Soft material.' },
+  { word: 'plastic', meaning: '플라스틱', example: 'Plastic bottle.' },
+  { word: 'metal', meaning: '금속', example: 'Strong metal.' },
+  { word: 'glass', meaning: '유리, 유리잔', example: 'A glass of water.' },
+  { word: 'cotton', meaning: '면, 솜', example: 'Cotton shirt.' },
+  { word: 'wood', meaning: '나무, 목재', example: 'A wood table.' },
+  { word: 'paper', meaning: '종이', example: 'White paper.' },
+  { word: 'stone', meaning: '돌', example: 'A smooth stone.' },
+  { word: 'string', meaning: '끈, 줄', example: 'A long string.' },
+  { word: 'rope', meaning: '밧줄', example: 'Pull the rope.' },
+  { word: 'needle', meaning: '바늘', example: 'A sharp needle.' },
+
+  // 추상어 (10)
+  { word: 'idea', meaning: '생각, 아이디어', example: 'A great idea.' },
+  { word: 'opinion', meaning: '의견', example: 'My opinion.' },
+  { word: 'reason', meaning: '이유', example: 'A good reason.' },
+  { word: 'problem', meaning: '문제', example: 'Solve the problem.' },
+  { word: 'solution', meaning: '해결책', example: 'Find a solution.' },
+  { word: 'question', meaning: '질문', example: 'A hard question.' },
+  { word: 'answer', meaning: '대답, 정답', example: 'The right answer.' },
+  { word: 'example', meaning: '예시', example: 'Give an example.' },
+  { word: 'fact', meaning: '사실', example: 'An important fact.' },
+  { word: 'truth', meaning: '진실', example: 'Tell the truth.' },
+
+  // 시간/날짜 (15)
+  { word: 'century', meaning: '세기', example: '21st century.' },
+  { word: 'decade', meaning: '10년', example: 'A decade ago.' },
+  { word: 'period', meaning: '기간', example: 'A long period.' },
+  { word: 'moment', meaning: '순간', example: 'A happy moment.' },
+  { word: 'season', meaning: '계절', example: 'Four seasons.' },
+  { word: 'weekday', meaning: '평일', example: 'A busy weekday.' },
+  { word: 'event', meaning: '행사, 사건', example: 'A big event.' },
+  { word: 'schedule', meaning: '일정', example: 'My schedule.' },
+  { word: 'appointment', meaning: '약속', example: 'Doctor appointment.' },
+  { word: 'deadline', meaning: '마감', example: 'Meet the deadline.' },
+  { word: 'recent', meaning: '최근의', example: 'Recent news.' },
+  { word: 'modern', meaning: '현대의', example: 'Modern art.' },
+  { word: 'ancient', meaning: '고대의', example: 'Ancient times.' },
+  { word: 'temporary', meaning: '일시적인', example: 'Temporary job.' },
+  { word: 'permanent', meaning: '영구적인', example: 'Permanent home.' },
+];
+
+
+// 중등 Level 2 (200개) - 중1~중2 수준: 사회/과학/의사소통/예술
+const MID_L2 = [
+  // 의사소통/관계 (25)
+  { word: 'communicate', meaning: '의사소통하다', example: 'Communicate clearly.' },
+  { word: 'conversation', meaning: '대화', example: 'A long conversation.' },
+  { word: 'discuss', meaning: '논의하다', example: 'Discuss the topic.' },
+  { word: 'argue', meaning: '논쟁하다', example: 'Do not argue.' },
+  { word: 'express', meaning: '표현하다', example: 'Express your feelings.' },
+  { word: 'suggest', meaning: '제안하다', example: 'I suggest this plan.' },
+  { word: 'recommend', meaning: '추천하다', example: 'I recommend this book.' },
+  { word: 'apologize', meaning: '사과하다', example: 'Apologize to her.' },
+  { word: 'forgive', meaning: '용서하다', example: 'Forgive me.' },
+  { word: 'respect', meaning: '존중하다', example: 'Respect others.' },
+  { word: 'trust', meaning: '신뢰하다', example: 'I trust you.' },
+  { word: 'support', meaning: '지지하다, 응원하다', example: 'Support your friend.' },
+  { word: 'encourage', meaning: '격려하다', example: 'Encourage students.' },
+  { word: 'praise', meaning: '칭찬하다', example: 'Praise good work.' },
+  { word: 'blame', meaning: '비난하다', example: 'Do not blame others.' },
+  { word: 'complain', meaning: '불평하다', example: 'Stop complaining.' },
+  { word: 'claim', meaning: '주장하다', example: 'Claim a prize.' },
+  { word: 'convince', meaning: '설득하다', example: 'Convince him.' },
+  { word: 'greet', meaning: '인사하다', example: 'Greet your teacher.' },
+  { word: 'introduce', meaning: '소개하다', example: 'Introduce yourself.' },
+  { word: 'relationship', meaning: '관계', example: 'A close relationship.' },
+  { word: 'attitude', meaning: '태도', example: 'A positive attitude.' },
+  { word: 'behavior', meaning: '행동', example: 'Good behavior.' },
+  { word: 'manner', meaning: '예절, 방식', example: 'Good manners.' },
+  { word: 'reaction', meaning: '반응', example: 'A quick reaction.' },
+
+  // 사회/경제 (25)
+  { word: 'government', meaning: '정부', example: 'The government decides.' },
+  { word: 'president', meaning: '대통령, 회장', example: 'The president speaks.' },
+  { word: 'citizen', meaning: '시민', example: 'A good citizen.' },
+  { word: 'law', meaning: '법', example: 'Follow the law.' },
+  { word: 'rule', meaning: '규칙', example: 'A simple rule.' },
+  { word: 'right', meaning: '권리, 오른쪽', example: 'Human rights.' },
+  { word: 'duty', meaning: '의무', example: 'My duty.' },
+  { word: 'freedom', meaning: '자유', example: 'Love freedom.' },
+  { word: 'election', meaning: '선거', example: 'A fair election.' },
+  { word: 'vote', meaning: '투표하다', example: 'Vote today.' },
+  { word: 'economy', meaning: '경제', example: 'A strong economy.' },
+  { word: 'business', meaning: '사업', example: 'A small business.' },
+  { word: 'company', meaning: '회사', example: 'A big company.' },
+  { word: 'product', meaning: '제품', example: 'A new product.' },
+  { word: 'service', meaning: '서비스', example: 'Good service.' },
+  { word: 'customer', meaning: '고객', example: 'Happy customers.' },
+  { word: 'market', meaning: '시장', example: 'The stock market.' },
+  { word: 'trade', meaning: '무역, 거래', example: 'International trade.' },
+  { word: 'profit', meaning: '이익', example: 'Make a profit.' },
+  { word: 'cost', meaning: '비용', example: 'High cost.' },
+  { word: 'income', meaning: '수입', example: 'Monthly income.' },
+  { word: 'tax', meaning: '세금', example: 'Pay tax.' },
+  { word: 'bill', meaning: '청구서', example: 'Pay the bill.' },
+  { word: 'currency', meaning: '화폐', example: 'Foreign currency.' },
+  { word: 'budget', meaning: '예산', example: 'A tight budget.' },
+
+  // 기술/과학 기초 (25)
+  { word: 'technology', meaning: '기술', example: 'New technology.' },
+  { word: 'science', meaning: '과학', example: 'Modern science.' },
+  { word: 'scientist', meaning: '과학자', example: 'A famous scientist.' },
+  { word: 'research', meaning: '연구', example: 'Do research.' },
+  { word: 'experiment', meaning: '실험', example: 'A science experiment.' },
+  { word: 'invent', meaning: '발명하다', example: 'Invent something useful.' },
+  { word: 'invention', meaning: '발명(품)', example: 'A great invention.' },
+  { word: 'device', meaning: '기기', example: 'A small device.' },
+  { word: 'computer', meaning: '컴퓨터', example: 'Use the computer.' },
+  { word: 'screen', meaning: '화면', example: 'A bright screen.' },
+  { word: 'software', meaning: '소프트웨어', example: 'Free software.' },
+  { word: 'program', meaning: '프로그램', example: 'Run a program.' },
+  { word: 'data', meaning: '데이터, 자료', example: 'Collect data.' },
+  { word: 'information', meaning: '정보', example: 'Useful information.' },
+  { word: 'network', meaning: '네트워크, 망', example: 'A strong network.' },
+  { word: 'signal', meaning: '신호', example: 'A weak signal.' },
+  { word: 'battery', meaning: '배터리', example: 'Low battery.' },
+  { word: 'energy', meaning: '에너지', example: 'Save energy.' },
+  { word: 'electric', meaning: '전기의', example: 'Electric car.' },
+  { word: 'power', meaning: '힘, 전력', example: 'Strong power.' },
+  { word: 'fuel', meaning: '연료', example: 'Save fuel.' },
+  { word: 'chemical', meaning: '화학의, 화학물질', example: 'Chemical reaction.' },
+  { word: 'element', meaning: '원소, 요소', example: 'Basic element.' },
+  { word: 'atom', meaning: '원자', example: 'A tiny atom.' },
+  { word: 'gravity', meaning: '중력', example: 'Earth has gravity.' },
+
+  // 예술/미디어 (20)
+  { word: 'art', meaning: '예술, 미술', example: 'Love art.' },
+  { word: 'artist', meaning: '예술가', example: 'A famous artist.' },
+  { word: 'painting', meaning: '그림', example: 'A beautiful painting.' },
+  { word: 'sculpture', meaning: '조각', example: 'A stone sculpture.' },
+  { word: 'museum', meaning: '박물관', example: 'Visit the museum.' },
+  { word: 'gallery', meaning: '미술관', example: 'An art gallery.' },
+  { word: 'theater', meaning: '극장', example: 'Go to the theater.' },
+  { word: 'performance', meaning: '공연', example: 'A live performance.' },
+  { word: 'concert', meaning: '콘서트', example: 'A rock concert.' },
+  { word: 'musician', meaning: '음악가', example: 'A great musician.' },
+  { word: 'instrument', meaning: '악기, 기구', example: 'Play an instrument.' },
+  { word: 'director', meaning: '감독', example: 'A movie director.' },
+  { word: 'actor', meaning: '배우', example: 'A famous actor.' },
+  { word: 'novel', meaning: '소설', example: 'Read a novel.' },
+  { word: 'poem', meaning: '시', example: 'Write a poem.' },
+  { word: 'author', meaning: '작가', example: 'A popular author.' },
+  { word: 'newspaper', meaning: '신문', example: 'Daily newspaper.' },
+  { word: 'magazine', meaning: '잡지', example: 'A fashion magazine.' },
+  { word: 'advertisement', meaning: '광고', example: 'A TV advertisement.' },
+  { word: 'channel', meaning: '채널', example: 'Change the channel.' },
+
+  // 자연/지리 (20)
+  { word: 'continent', meaning: '대륙', example: 'Asian continent.' },
+  { word: 'desert', meaning: '사막', example: 'A hot desert.' },
+  { word: 'island', meaning: '섬', example: 'A tropical island.' },
+  { word: 'valley', meaning: '계곡', example: 'A deep valley.' },
+  { word: 'hill', meaning: '언덕', example: 'A green hill.' },
+  { word: 'waterfall', meaning: '폭포', example: 'A tall waterfall.' },
+  { word: 'lake', meaning: '호수', example: 'A calm lake.' },
+  { word: 'coast', meaning: '해안', example: 'Rocky coast.' },
+  { word: 'cave', meaning: '동굴', example: 'A dark cave.' },
+  { word: 'volcano', meaning: '화산', example: 'An active volcano.' },
+  { word: 'earthquake', meaning: '지진', example: 'A strong earthquake.' },
+  { word: 'disaster', meaning: '재난', example: 'A natural disaster.' },
+  { word: 'climate', meaning: '기후', example: 'Warm climate.' },
+  { word: 'temperature', meaning: '온도', example: 'High temperature.' },
+  { word: 'weather', meaning: '날씨', example: 'Nice weather.' },
+  { word: 'forecast', meaning: '예보', example: 'Weather forecast.' },
+  { word: 'species', meaning: '종(種)', example: 'Rare species.' },
+  { word: 'creature', meaning: '생물', example: 'Sea creatures.' },
+  { word: 'mammal', meaning: '포유류', example: 'Whales are mammals.' },
+  { word: 'insect', meaning: '곤충', example: 'Small insects.' },
+
+  // 감정/느낌 심화 (20)
+  { word: 'joy', meaning: '기쁨', example: 'Pure joy.' },
+  { word: 'sorrow', meaning: '슬픔', example: 'Deep sorrow.' },
+  { word: 'fear', meaning: '두려움', example: 'Feel fear.' },
+  { word: 'hope', meaning: '희망', example: 'Never lose hope.' },
+  { word: 'pride', meaning: '자부심', example: 'Family pride.' },
+  { word: 'shame', meaning: '수치심', example: 'Feel shame.' },
+  { word: 'pity', meaning: '동정', example: 'What a pity.' },
+  { word: 'relief', meaning: '안도', example: 'A sigh of relief.' },
+  { word: 'surprise', meaning: '놀람', example: 'A big surprise.' },
+  { word: 'shock', meaning: '충격', example: 'A terrible shock.' },
+  { word: 'anger', meaning: '분노', example: 'Control your anger.' },
+  { word: 'hatred', meaning: '증오', example: 'Avoid hatred.' },
+  { word: 'envy', meaning: '부러움', example: 'Pure envy.' },
+  { word: 'desire', meaning: '욕구, 바람', example: 'Strong desire.' },
+  { word: 'mood', meaning: '기분', example: 'A bad mood.' },
+  { word: 'emotion', meaning: '감정', example: 'Strong emotions.' },
+  { word: 'passion', meaning: '열정', example: 'Full of passion.' },
+  { word: 'regret', meaning: '후회', example: 'Deep regret.' },
+  { word: 'comfort', meaning: '편안함, 위로', example: 'Give comfort.' },
+  { word: 'sympathy', meaning: '동정, 공감', example: 'Show sympathy.' },
+
+  // 행동/동사 확장 (30)
+  { word: 'attend', meaning: '참석하다', example: 'Attend the meeting.' },
+  { word: 'join', meaning: '가입하다, 함께하다', example: 'Join our team.' },
+  { word: 'gather', meaning: '모으다, 모이다', example: 'Gather friends.' },
+  { word: 'spread', meaning: '퍼지다', example: 'Spread the news.' },
+  { word: 'collect', meaning: '모으다', example: 'Collect stamps.' },
+  { word: 'deliver', meaning: '배달하다', example: 'Deliver mail.' },
+  { word: 'repair', meaning: '수리하다', example: 'Repair the car.' },
+  { word: 'build', meaning: '짓다', example: 'Build a house.' },
+  { word: 'destroy', meaning: '파괴하다', example: 'Do not destroy.' },
+  { word: 'damage', meaning: '손상시키다', example: 'Damage control.' },
+  { word: 'produce', meaning: '생산하다', example: 'Produce goods.' },
+  { word: 'provide', meaning: '제공하다', example: 'Provide help.' },
+  { word: 'offer', meaning: '제공하다, 제안하다', example: 'Offer advice.' },
+  { word: 'receive', meaning: '받다', example: 'Receive a gift.' },
+  { word: 'delivery', meaning: '배달', example: 'Quick delivery.' },
+  { word: 'announce', meaning: '발표하다', example: 'Announce the news.' },
+  { word: 'uncover', meaning: '밝혀내다', example: 'Uncover the truth.' },
+  { word: 'appear', meaning: '나타나다', example: 'A ghost appears.' },
+  { word: 'disappear', meaning: '사라지다', example: 'The cat disappears.' },
+  { word: 'remain', meaning: '남다, 머물다', example: 'Remain calm.' },
+  { word: 'exist', meaning: '존재하다', example: 'Ghosts do not exist.' },
+  { word: 'contain', meaning: '포함하다', example: 'Contains sugar.' },
+  { word: 'belong', meaning: '속하다', example: 'Belong to a club.' },
+  { word: 'unfold', meaning: '전개되다', example: 'Events unfold quickly.' },
+  { word: 'occur', meaning: '발생하다', example: 'Accidents occur.' },
+  { word: 'refer', meaning: '언급하다, 참조하다', example: 'Refer to the book.' },
+  { word: 'represent', meaning: '대표하다', example: 'Represent Korea.' },
+  { word: 'reflect', meaning: '반영하다, 반성하다', example: 'Reflect on it.' },
+  { word: 'demand', meaning: '요구하다', example: 'Demand justice.' },
+  { word: 'request', meaning: '요청하다', example: 'Make a request.' },
+
+  // 형용사 확장 (35)
+  { word: 'common', meaning: '흔한, 공통의', example: 'A common name.' },
+  { word: 'rare', meaning: '드문, 희귀한', example: 'A rare coin.' },
+  { word: 'unique', meaning: '독특한', example: 'A unique style.' },
+  { word: 'usual', meaning: '평소의', example: 'As usual.' },
+  { word: 'unusual', meaning: '특이한', example: 'Unusual weather.' },
+  { word: 'normal', meaning: '정상의', example: 'Normal temperature.' },
+  { word: 'strange', meaning: '이상한', example: 'A strange sound.' },
+  { word: 'familiar', meaning: '익숙한', example: 'A familiar face.' },
+  { word: 'unknown', meaning: '알려지지 않은', example: 'An unknown singer.' },
+  { word: 'possible', meaning: '가능한', example: 'It is possible.' },
+  { word: 'impossible', meaning: '불가능한', example: 'Almost impossible.' },
+  { word: 'available', meaning: '이용 가능한', example: 'Books available.' },
+  { word: 'necessary', meaning: '필요한', example: 'Necessary items.' },
+  { word: 'useful', meaning: '유용한', example: 'A useful tool.' },
+  { word: 'useless', meaning: '쓸모없는', example: 'Useless effort.' },
+  { word: 'positive', meaning: '긍정적인', example: 'Positive thinking.' },
+  { word: 'negative', meaning: '부정적인', example: 'Negative reply.' },
+  { word: 'safe', meaning: '안전한', example: 'Stay safe.' },
+  { word: 'dangerous', meaning: '위험한', example: 'Very dangerous.' },
+  { word: 'healthy', meaning: '건강한', example: 'Healthy food.' },
+  { word: 'sick', meaning: '아픈', example: 'Feel sick.' },
+  { word: 'simple', meaning: '단순한', example: 'A simple idea.' },
+  { word: 'complex', meaning: '복잡한', example: 'A complex problem.' },
+  { word: 'difficult', meaning: '어려운', example: 'Very difficult.' },
+  { word: 'easy', meaning: '쉬운', example: 'Easy as pie.' },
+  { word: 'clear', meaning: '분명한, 맑은', example: 'Clear sky.' },
+  { word: 'unclear', meaning: '불분명한', example: 'An unclear message.' },
+  { word: 'certain', meaning: '확실한', example: 'I am certain.' },
+  { word: 'sure', meaning: '확실한', example: 'Are you sure?' },
+  { word: 'main', meaning: '주요한', example: 'Main reason.' },
+  { word: 'major', meaning: '주요한, 전공', example: 'A major issue.' },
+  { word: 'minor', meaning: '사소한', example: 'A minor problem.' },
+  { word: 'exact', meaning: '정확한', example: 'Exact time.' },
+  { word: 'obvious', meaning: '명백한', example: 'Obvious answer.' },
+  { word: 'secret', meaning: '비밀의, 비밀', example: 'A secret code.' },
+];
+
+
+// 중등 Level 3 (200개) - 중2~중3 수준: 추상 개념, 논리적 사고
+const MID_L3 = [
+  // 추상 개념 (25)
+  { word: 'concept', meaning: '개념', example: 'A new concept.' },
+  { word: 'theory', meaning: '이론', example: 'Einstein\'s theory.' },
+  { word: 'principle', meaning: '원칙', example: 'A basic principle.' },
+  { word: 'method', meaning: '방법', example: 'A new method.' },
+  { word: 'process', meaning: '과정', example: 'A long process.' },
+  { word: 'progress', meaning: '진전', example: 'Make progress.' },
+  { word: 'purpose', meaning: '목적', example: 'My purpose is clear.' },
+  { word: 'meaning', meaning: '의미', example: 'Find meaning.' },
+  { word: 'value', meaning: '가치', example: 'Great value.' },
+  { word: 'quality', meaning: '품질, 특성', example: 'High quality.' },
+  { word: 'quantity', meaning: '양', example: 'A large quantity.' },
+  { word: 'condition', meaning: '상태, 조건', example: 'Good condition.' },
+  { word: 'situation', meaning: '상황', example: 'A difficult situation.' },
+  { word: 'circumstance', meaning: '상황, 환경', example: 'Special circumstances.' },
+  { word: 'aspect', meaning: '측면', example: 'Every aspect.' },
+  { word: 'feature', meaning: '특징', example: 'A key feature.' },
+  { word: 'factor', meaning: '요인', example: 'An important factor.' },
+  { word: 'influence', meaning: '영향', example: 'Strong influence.' },
+  { word: 'impact', meaning: '영향, 충격', example: 'A huge impact.' },
+  { word: 'effect', meaning: '효과, 영향', example: 'A good effect.' },
+  { word: 'trigger', meaning: '촉발시키다', example: 'Trigger a reaction.' },
+  { word: 'implication', meaning: '영향, 함의', example: 'Serious implications.' },
+  { word: 'outcome', meaning: '결과', example: 'Best outcome.' },
+  { word: 'consequence', meaning: '결과, 영향', example: 'Serious consequences.' },
+  { word: 'benefit', meaning: '이익, 혜택', example: 'Many benefits.' },
+
+  // 비판적 사고 (20)
+  { word: 'analyze', meaning: '분석하다', example: 'Analyze data.' },
+  { word: 'evaluate', meaning: '평가하다', example: 'Evaluate options.' },
+  { word: 'criticize', meaning: '비판하다', example: 'Do not criticize.' },
+  { word: 'judge', meaning: '판단하다', example: 'Do not judge.' },
+  { word: 'doubt', meaning: '의심하다', example: 'I doubt it.' },
+  { word: 'examine', meaning: '검사하다', example: 'Examine carefully.' },
+  { word: 'investigate', meaning: '조사하다', example: 'Investigate the case.' },
+  { word: 'observe', meaning: '관찰하다', example: 'Observe the stars.' },
+  { word: 'notice', meaning: '알아차리다', example: 'Notice the change.' },
+  { word: 'recognize', meaning: '인식하다', example: 'I recognize him.' },
+  { word: 'identify', meaning: '확인하다', example: 'Identify the problem.' },
+  { word: 'confirm', meaning: '확인하다', example: 'Please confirm.' },
+  { word: 'prove', meaning: '증명하다', example: 'Prove your point.' },
+  { word: 'deny', meaning: '부인하다', example: 'He denies it.' },
+  { word: 'assert', meaning: '주장하다', example: 'Assert your rights.' },
+  { word: 'debate', meaning: '토론하다', example: 'Debate the issue.' },
+  { word: 'conclude', meaning: '결론 내리다', example: 'Conclude the meeting.' },
+  { word: 'conclusion', meaning: '결론', example: 'Draw a conclusion.' },
+  { word: 'evidence', meaning: '증거', example: 'Strong evidence.' },
+  { word: 'logic', meaning: '논리', example: 'Use logic.' },
+
+  // 심리/감정 심화 (20)
+  { word: 'personality', meaning: '성격', example: 'A strong personality.' },
+  { word: 'character', meaning: '성격, 등장인물', example: 'Main character.' },
+  { word: 'instinct', meaning: '본능', example: 'Trust your instinct.' },
+  { word: 'conscience', meaning: '양심', example: 'A guilty conscience.' },
+  { word: 'intention', meaning: '의도', example: 'Good intentions.' },
+  { word: 'motivation', meaning: '동기', example: 'Strong motivation.' },
+  { word: 'ambition', meaning: '야망', example: 'Full of ambition.' },
+  { word: 'courage', meaning: '용기', example: 'Show courage.' },
+  { word: 'patience', meaning: '인내', example: 'Need patience.' },
+  { word: 'confidence', meaning: '자신감', example: 'Have confidence.' },
+  { word: 'curiosity', meaning: '호기심', example: 'Childlike curiosity.' },
+  { word: 'wisdom', meaning: '지혜', example: 'Ancient wisdom.' },
+  { word: 'loyalty', meaning: '충성', example: 'Deep loyalty.' },
+  { word: 'honesty', meaning: '정직', example: 'Value honesty.' },
+  { word: 'kindness', meaning: '친절', example: 'Show kindness.' },
+  { word: 'generosity', meaning: '관대함', example: 'Great generosity.' },
+  { word: 'imagination', meaning: '상상력', example: 'Wild imagination.' },
+  { word: 'creativity', meaning: '창의성', example: 'Show creativity.' },
+  { word: 'intelligence', meaning: '지능', example: 'High intelligence.' },
+  { word: 'memory', meaning: '기억(력)', example: 'Good memory.' },
+
+  // 과학/학문 (20)
+  { word: 'biology', meaning: '생물학', example: 'Study biology.' },
+  { word: 'chemistry', meaning: '화학', example: 'Chemistry class.' },
+  { word: 'physics', meaning: '물리학', example: 'Physics is hard.' },
+  { word: 'geography', meaning: '지리학', example: 'World geography.' },
+  { word: 'mathematics', meaning: '수학', example: 'Love mathematics.' },
+  { word: 'philosophy', meaning: '철학', example: 'Greek philosophy.' },
+  { word: 'psychology', meaning: '심리학', example: 'Study psychology.' },
+  { word: 'economics', meaning: '경제학', example: 'Economics major.' },
+  { word: 'medicine', meaning: '의학, 약', example: 'Modern medicine.' },
+  { word: 'engineer', meaning: '기술자', example: 'A civil engineer.' },
+  { word: 'laboratory', meaning: '실험실', example: 'Work in a lab.' },
+  { word: 'equipment', meaning: '장비', example: 'Lab equipment.' },
+  { word: 'formula', meaning: '공식', example: 'A math formula.' },
+  { word: 'equation', meaning: '방정식', example: 'Solve the equation.' },
+  { word: 'measure', meaning: '측정하다', example: 'Measure the height.' },
+  { word: 'calculate', meaning: '계산하다', example: 'Calculate the cost.' },
+  { word: 'estimate', meaning: '추정하다', example: 'Estimate the price.' },
+  { word: 'synthesize', meaning: '종합하다', example: 'Synthesize the data.' },
+  { word: 'contrast', meaning: '대조하다', example: 'Compare and contrast.' },
+  { word: 'survey', meaning: '조사', example: 'Take a survey.' },
+
+  // 정치/사회 (20)
+  { word: 'democracy', meaning: '민주주의', example: 'Support democracy.' },
+  { word: 'politics', meaning: '정치', example: 'Discuss politics.' },
+  { word: 'policy', meaning: '정책', example: 'Foreign policy.' },
+  { word: 'justice', meaning: '정의', example: 'Fight for justice.' },
+  { word: 'equal', meaning: '평등한', example: 'Equal rights.' },
+  { word: 'equality', meaning: '평등', example: 'Gender equality.' },
+  { word: 'authority', meaning: '권위, 당국', example: 'In authority.' },
+  { word: 'dominance', meaning: '지배력', example: 'Economic dominance.' },
+  { word: 'leader', meaning: '지도자', example: 'A great leader.' },
+  { word: 'leadership', meaning: '지도력', example: 'Show leadership.' },
+  { word: 'organization', meaning: '조직', example: 'A global organization.' },
+  { word: 'institution', meaning: '기관', example: 'An old institution.' },
+  { word: 'committee', meaning: '위원회', example: 'Form a committee.' },
+  { word: 'volunteer', meaning: '자원봉사자', example: 'Be a volunteer.' },
+  { word: 'charity', meaning: '자선', example: 'Give to charity.' },
+  { word: 'welfare', meaning: '복지', example: 'Social welfare.' },
+  { word: 'poverty', meaning: '빈곤', example: 'End poverty.' },
+  { word: 'wealth', meaning: '부(富)', example: 'Great wealth.' },
+  { word: 'population', meaning: '인구', example: 'Growing population.' },
+  { word: 'diversity', meaning: '다양성', example: 'Cultural diversity.' },
+
+  // 환경/지속가능성 (15)
+  { word: 'resource', meaning: '자원', example: 'Natural resources.' },
+  { word: 'waste', meaning: '낭비, 쓰레기', example: 'Reduce waste.' },
+  { word: 'reduce', meaning: '줄이다', example: 'Reduce pollution.' },
+  { word: 'reuse', meaning: '재사용하다', example: 'Reuse bags.' },
+  { word: 'preserve', meaning: '보존하다', example: 'Preserve nature.' },
+  { word: 'conservation', meaning: '보존', example: 'Energy conservation.' },
+  { word: 'extinct', meaning: '멸종된', example: 'Extinct species.' },
+  { word: 'endangered', meaning: '멸종위기의', example: 'Endangered animals.' },
+  { word: 'habitat', meaning: '서식지', example: 'Natural habitat.' },
+  { word: 'ecosystem', meaning: '생태계', example: 'A delicate ecosystem.' },
+  { word: 'atmosphere', meaning: '대기, 분위기', example: 'A tense atmosphere.' },
+  { word: 'global', meaning: '세계적인', example: 'A global issue.' },
+  { word: 'renewable', meaning: '재생 가능한', example: 'Renewable energy.' },
+  { word: 'sustainable', meaning: '지속 가능한', example: 'Sustainable living.' },
+  { word: 'organic', meaning: '유기농의', example: 'Organic food.' },
+
+  // 동사 심화 (40)
+  { word: 'establish', meaning: '설립하다', example: 'Establish a school.' },
+  { word: 'maintain', meaning: '유지하다', example: 'Maintain balance.' },
+  { word: 'pursue', meaning: '추구하다', example: 'Pursue your dream.' },
+  { word: 'accomplish', meaning: '완수하다', example: 'Accomplish a task.' },
+  { word: 'complete', meaning: '완성하다', example: 'Complete the project.' },
+  { word: 'develop', meaning: '개발하다, 발전하다', example: 'Develop skills.' },
+  { word: 'refine', meaning: '개선하다', example: 'Refine the idea.' },
+  { word: 'increase', meaning: '증가시키다', example: 'Increase in size.' },
+  { word: 'decrease', meaning: '감소시키다', example: 'Decrease in cost.' },
+  { word: 'surge', meaning: '급증하다', example: 'Prices surge.' },
+  { word: 'decline', meaning: '쇠퇴하다', example: 'Decline gradually.' },
+  { word: 'inspire', meaning: '영감을 주다', example: 'Inspire others.' },
+  { word: 'discourage', meaning: '낙담시키다', example: 'Do not discourage.' },
+  { word: 'prevent', meaning: '예방하다', example: 'Prevent accidents.' },
+  { word: 'avoid', meaning: '피하다', example: 'Avoid danger.' },
+  { word: 'escape', meaning: '탈출하다', example: 'Escape the fire.' },
+  { word: 'rescue', meaning: '구조하다', example: 'Rescue the dog.' },
+  { word: 'punish', meaning: '벌하다', example: 'Punish the wrong.' },
+  { word: 'incentive', meaning: '동기, 장려책', example: 'Financial incentive.' },
+  { word: 'treat', meaning: '대하다, 치료하다', example: 'Treat kindly.' },
+  { word: 'cure', meaning: '치료하다', example: 'Cure the disease.' },
+  { word: 'safeguard', meaning: '보호하다', example: 'Safeguard information.' },
+  { word: 'regard', meaning: '여기다, 존중하다', example: 'Regard highly.' },
+  { word: 'ignore', meaning: '무시하다', example: 'Ignore the noise.' },
+  { word: 'perceive', meaning: '인식하다', example: 'Perceive danger.' },
+  { word: 'admire', meaning: '존경하다', example: 'Admire her work.' },
+  { word: 'crave', meaning: '갈망하다', example: 'Crave attention.' },
+  { word: 'imitate', meaning: '모방하다', example: 'Imitate the style.' },
+  { word: 'copy', meaning: '복사하다, 베끼다', example: 'Copy the file.' },
+  { word: 'repeat', meaning: '반복하다', example: 'Repeat after me.' },
+  { word: 'replace', meaning: '대체하다', example: 'Replace the battery.' },
+  { word: 'exchange', meaning: '교환하다', example: 'Exchange money.' },
+  { word: 'correlate', meaning: '상관관계가 있다', example: 'These correlate well.' },
+  { word: 'combine', meaning: '결합하다', example: 'Combine two colors.' },
+  { word: 'separate', meaning: '분리하다', example: 'Separate the trash.' },
+  { word: 'divide', meaning: '나누다', example: 'Divide the pizza.' },
+  { word: 'multiply', meaning: '곱하다, 증식하다', example: 'Multiply numbers.' },
+  { word: 'expand', meaning: '확장하다', example: 'Expand the business.' },
+  { word: 'shrink', meaning: '줄어들다', example: 'Shrink in water.' },
+  { word: 'transform', meaning: '변형시키다', example: 'Transform completely.' },
+
+  // 형용사 심화 (40)
+  { word: 'general', meaning: '일반적인', example: 'In general.' },
+  { word: 'specific', meaning: '구체적인', example: 'A specific plan.' },
+  { word: 'particular', meaning: '특정한', example: 'A particular day.' },
+  { word: 'individual', meaning: '개인의', example: 'Individual work.' },
+  { word: 'public', meaning: '공공의', example: 'Public place.' },
+  { word: 'private', meaning: '사적인', example: 'Private life.' },
+  { word: 'official', meaning: '공식적인', example: 'An official rule.' },
+  { word: 'formal', meaning: '격식 있는', example: 'Formal dress.' },
+  { word: 'informal', meaning: '비격식의', example: 'Informal talk.' },
+  { word: 'casual', meaning: '평상시의', example: 'Casual clothes.' },
+  { word: 'traditional', meaning: '전통적인', example: 'Traditional food.' },
+  { word: 'cultural', meaning: '문화적인', example: 'Cultural difference.' },
+  { word: 'national', meaning: '국가의', example: 'National flag.' },
+  { word: 'international', meaning: '국제적인', example: 'International airport.' },
+  { word: 'local', meaning: '지역의', example: 'Local news.' },
+  { word: 'natural', meaning: '자연의', example: 'Natural beauty.' },
+  { word: 'artificial', meaning: '인공의', example: 'Artificial light.' },
+  { word: 'real', meaning: '진짜의', example: 'Real story.' },
+  { word: 'fake', meaning: '가짜의', example: 'A fake smile.' },
+  { word: 'true', meaning: '사실인', example: 'A true story.' },
+  { word: 'false', meaning: '거짓의', example: 'A false answer.' },
+  { word: 'revise', meaning: '수정하다', example: 'Revise the draft.' },
+  { word: 'incorrect', meaning: '틀린', example: 'Incorrect data.' },
+  { word: 'accurate', meaning: '정확한', example: 'Accurate data.' },
+  { word: 'precise', meaning: '정밀한', example: 'Precise measurement.' },
+  { word: 'approximate', meaning: '대략적인', example: 'Approximate number.' },
+  { word: 'similar', meaning: '비슷한', example: 'Similar ideas.' },
+  { word: 'identical', meaning: '동일한', example: 'Identical twins.' },
+  { word: 'opposite', meaning: '반대의', example: 'Opposite direction.' },
+  { word: 'various', meaning: '다양한', example: 'Various colors.' },
+  { word: 'several', meaning: '몇몇의', example: 'Several books.' },
+  { word: 'numerous', meaning: '많은', example: 'Numerous reasons.' },
+  { word: 'entire', meaning: '전체의', example: 'Entire family.' },
+  { word: 'whole', meaning: '전체의', example: 'The whole day.' },
+  { word: 'partial', meaning: '부분적인', example: 'Partial credit.' },
+  { word: 'thorough', meaning: '철저한', example: 'A thorough check.' },
+  { word: 'incomplete', meaning: '불완전한', example: 'Incomplete work.' },
+  { word: 'sufficient', meaning: '충분한', example: 'Sufficient food.' },
+  { word: 'adequate', meaning: '적당한', example: 'Adequate supply.' },
+  { word: 'excessive', meaning: '과도한', example: 'Excessive noise.' },
+];
+
+
+// 중등 Level 4 (200개) - 중3 수준, 고등 진입 대비: 학술 어휘, 복합 표현
+const MID_L4 = [
+  // 학술 어휘 (30)
+  { word: 'hypothesis', meaning: '가설', example: 'Test the hypothesis.' },
+  { word: 'summary', meaning: '요약', example: 'Brief summary.' },
+  { word: 'assumption', meaning: '가정', example: 'A false assumption.' },
+  { word: 'interpretation', meaning: '해석', example: 'An interpretation of art.' },
+  { word: 'definition', meaning: '정의', example: 'A clear definition.' },
+  { word: 'explanation', meaning: '설명', example: 'A simple explanation.' },
+  { word: 'demonstration', meaning: '시연, 시위', example: 'A demonstration of skill.' },
+  { word: 'comparison', meaning: '비교', example: 'A fair comparison.' },
+  { word: 'divergence', meaning: '차이, 분기', example: 'Point of divergence.' },
+  { word: 'reference', meaning: '참고, 언급', example: 'Make a reference.' },
+  { word: 'source', meaning: '출처, 원천', example: 'A reliable source.' },
+  { word: 'statistics', meaning: '통계', example: 'Government statistics.' },
+  { word: 'percentage', meaning: '백분율', example: 'A high percentage.' },
+  { word: 'proportion', meaning: '비율', example: 'Large proportion.' },
+  { word: 'tendency', meaning: '경향', example: 'A dangerous tendency.' },
+  { word: 'trend', meaning: '추세', example: 'A growing trend.' },
+  { word: 'phenomenon', meaning: '현상', example: 'A natural phenomenon.' },
+  { word: 'doctrine', meaning: '교리, 신조', example: 'Legal doctrine.' },
+  { word: 'criterion', meaning: '기준', example: 'A strict criterion.' },
+  { word: 'standard', meaning: '기준, 표준', example: 'High standards.' },
+  { word: 'structure', meaning: '구조', example: 'Basic structure.' },
+  { word: 'function', meaning: '기능, 작용', example: 'Main function.' },
+  { word: 'mechanism', meaning: '방법, 기제', example: 'A clever mechanism.' },
+  { word: 'approach', meaning: '접근법', example: 'A new approach.' },
+  { word: 'perspective', meaning: '관점', example: 'A fresh perspective.' },
+  { word: 'viewpoint', meaning: '관점', example: 'From my viewpoint.' },
+  { word: 'framework', meaning: '틀, 뼈대', example: 'Legal framework.' },
+  { word: 'context', meaning: '문맥, 맥락', example: 'In this context.' },
+  { word: 'background', meaning: '배경', example: 'Family background.' },
+  { word: 'foundation', meaning: '기초', example: 'A strong foundation.' },
+
+  // 복잡한 동사 (35)
+  { word: 'acquire', meaning: '얻다, 습득하다', example: 'Acquire knowledge.' },
+  { word: 'adapt', meaning: '적응하다', example: 'Adapt to changes.' },
+  { word: 'adjust', meaning: '조정하다', example: 'Adjust the volume.' },
+  { word: 'alter', meaning: '변경하다', example: 'Alter the plan.' },
+  { word: 'modify', meaning: '수정하다', example: 'Modify the design.' },
+  { word: 'evolve', meaning: '진화하다', example: 'Evolve over time.' },
+  { word: 'convert', meaning: '변환하다', example: 'Convert units.' },
+  { word: 'translate', meaning: '번역하다', example: 'Translate the text.' },
+  { word: 'distribute', meaning: '분배하다', example: 'Distribute food.' },
+  { word: 'obtain', meaning: '얻다', example: 'Obtain a license.' },
+  { word: 'retain', meaning: '유지하다', example: 'Retain control.' },
+  { word: 'sustain', meaning: '지속시키다', example: 'Sustain growth.' },
+  { word: 'reserve', meaning: '예약하다', example: 'Reserve a table.' },
+  { word: 'assume', meaning: '가정하다', example: 'Assume the best.' },
+  { word: 'presume', meaning: '추정하다', example: 'I presume so.' },
+  { word: 'suppose', meaning: '생각하다', example: 'I suppose you are right.' },
+  { word: 'indicate', meaning: '나타내다', example: 'Indicate direction.' },
+  { word: 'imply', meaning: '암시하다', example: 'What do you imply?' },
+  { word: 'convey', meaning: '전달하다', example: 'Convey a message.' },
+  { word: 'illustrate', meaning: '설명하다', example: 'Illustrate the point.' },
+  { word: 'emphasize', meaning: '강조하다', example: 'Emphasize honesty.' },
+  { word: 'highlight', meaning: '강조하다', example: 'Highlight key words.' },
+  { word: 'clarify', meaning: '명확히 하다', example: 'Clarify the rule.' },
+  { word: 'specify', meaning: '명시하다', example: 'Specify the time.' },
+  { word: 'determine', meaning: '결정하다', example: 'Determine the cost.' },
+  { word: 'distinguish', meaning: '구별하다', example: 'Distinguish true from false.' },
+  { word: 'classify', meaning: '분류하다', example: 'Classify books.' },
+  { word: 'categorize', meaning: '분류하다', example: 'Categorize items.' },
+  { word: 'organize', meaning: '조직하다', example: 'Organize an event.' },
+  { word: 'arrange', meaning: '배열하다', example: 'Arrange flowers.' },
+  { word: 'accompany', meaning: '동반하다', example: 'Accompany your friend.' },
+  { word: 'reveal', meaning: '드러내다', example: 'Reveal the truth.' },
+  { word: 'conceal', meaning: '숨기다', example: 'Conceal the evidence.' },
+  { word: 'expose', meaning: '노출시키다', example: 'Expose the lie.' },
+  { word: 'enhance', meaning: '향상시키다', example: 'Enhance quality.' },
+
+  // 추상 명사 심화 (25)
+  { word: 'republic', meaning: '공화국', example: 'Establish a republic.' },
+  { word: 'dictatorship', meaning: '독재', example: 'End dictatorship.' },
+  { word: 'revolution', meaning: '혁명', example: 'A peaceful revolution.' },
+  { word: 'evolution', meaning: '진화', example: 'Human evolution.' },
+  { word: 'civilization', meaning: '문명', example: 'Ancient civilization.' },
+  { word: 'generation', meaning: '세대', example: 'The young generation.' },
+  { word: 'existence', meaning: '존재', example: 'Proof of existence.' },
+  { word: 'identity', meaning: '정체성', example: 'National identity.' },
+  { word: 'reality', meaning: '현실', example: 'Face reality.' },
+  { word: 'fantasy', meaning: '환상', example: 'A fantasy world.' },
+  { word: 'illusion', meaning: '환상, 착각', example: 'An optical illusion.' },
+  { word: 'expertise', meaning: '전문지식', example: 'Technical expertise.' },
+  { word: 'capacity', meaning: '수용력, 능력', example: 'Full capacity.' },
+  { word: 'potential', meaning: '잠재력', example: 'Show your potential.' },
+  { word: 'possibility', meaning: '가능성', example: 'A slight possibility.' },
+  { word: 'opportunity', meaning: '기회', example: 'A golden opportunity.' },
+  { word: 'advantage', meaning: '장점', example: 'A big advantage.' },
+  { word: 'disadvantage', meaning: '단점', example: 'A small disadvantage.' },
+  { word: 'obstacle', meaning: '장애물', example: 'Overcome obstacles.' },
+  { word: 'difficulty', meaning: '어려움', example: 'Financial difficulty.' },
+  { word: 'struggle', meaning: '투쟁, 고군분투', example: 'A hard struggle.' },
+  { word: 'dedication', meaning: '헌신', example: 'Deep dedication.' },
+  { word: 'achievement', meaning: '성취', example: 'A great achievement.' },
+  { word: 'accomplishment', meaning: '업적', example: 'Life accomplishment.' },
+  { word: 'contribution', meaning: '기여', example: 'Make a contribution.' },
+
+  // 사회/정치 심화 (20)
+  { word: 'constitution', meaning: '헌법', example: 'The US Constitution.' },
+  { word: 'legislation', meaning: '법률', example: 'New legislation.' },
+  { word: 'regulation', meaning: '규제', example: 'Strict regulations.' },
+  { word: 'violation', meaning: '위반', example: 'A traffic violation.' },
+  { word: 'crime', meaning: '범죄', example: 'Fight crime.' },
+  { word: 'criminal', meaning: '범죄자, 범죄의', example: 'A criminal act.' },
+  { word: 'victim', meaning: '피해자', example: 'Help victims.' },
+  { word: 'witness', meaning: '목격자', example: 'A key witness.' },
+  { word: 'trial', meaning: '재판', example: 'A fair trial.' },
+  { word: 'court', meaning: '법원', example: 'Supreme court.' },
+  { word: 'assess', meaning: '평가하다', example: 'Assess the situation.' },
+  { word: 'lawyer', meaning: '변호사', example: 'Hire a lawyer.' },
+  { word: 'contract', meaning: '계약(서)', example: 'Sign the contract.' },
+  { word: 'agreement', meaning: '합의', example: 'Reach an agreement.' },
+  { word: 'negotiate', meaning: '협상하다', example: 'Negotiate a deal.' },
+  { word: 'cooperate', meaning: '협력하다', example: 'Cooperate fully.' },
+  { word: 'compromise', meaning: '타협', example: 'A fair compromise.' },
+  { word: 'conflict', meaning: '갈등', example: 'Avoid conflict.' },
+  { word: 'tension', meaning: '긴장', example: 'High tension.' },
+  { word: 'crisis', meaning: '위기', example: 'A financial crisis.' },
+
+  // 심리/철학 (15)
+  { word: 'consciousness', meaning: '의식', example: 'Lose consciousness.' },
+  { word: 'awareness', meaning: '인식, 자각', example: 'Raise awareness.' },
+  { word: 'perception', meaning: '인식, 지각', example: 'Human perception.' },
+  { word: 'mindset', meaning: '사고방식', example: 'A positive mindset.' },
+  { word: 'conduct', meaning: '행동, 수행하다', example: 'Code of conduct.' },
+  { word: 'cognition', meaning: '인지', example: 'Human cognition.' },
+  { word: 'mental', meaning: '정신의', example: 'Mental health.' },
+  { word: 'emotional', meaning: '감정적인', example: 'An emotional reaction.' },
+  { word: 'rational', meaning: '이성적인', example: 'A rational choice.' },
+  { word: 'irrational', meaning: '비이성적인', example: 'Irrational fear.' },
+  { word: 'subjective', meaning: '주관적인', example: 'Subjective opinion.' },
+  { word: 'objective', meaning: '객관적인, 목표', example: 'Objective view.' },
+  { word: 'philosophical', meaning: '철학적인', example: 'A philosophical debate.' },
+  { word: 'ethics', meaning: '윤리', example: 'Business ethics.' },
+  { word: 'moral', meaning: '도덕의', example: 'A moral lesson.' },
+
+  // 글로벌/국제 (15)
+  { word: 'universal', meaning: '보편적인', example: 'Universal truth.' },
+  { word: 'multinational', meaning: '다국적의', example: 'Multinational company.' },
+  { word: 'domestic', meaning: '국내의', example: 'Domestic flights.' },
+  { word: 'overseas', meaning: '해외의', example: 'Overseas trip.' },
+  { word: 'immigrant', meaning: '이민자', example: 'Help immigrants.' },
+  { word: 'refugee', meaning: '난민', example: 'Protect refugees.' },
+  { word: 'diplomat', meaning: '외교관', example: 'A skilled diplomat.' },
+  { word: 'diplomacy', meaning: '외교', example: 'Quiet diplomacy.' },
+  { word: 'alliance', meaning: '동맹', example: 'Form an alliance.' },
+  { word: 'treaty', meaning: '조약', example: 'Sign a treaty.' },
+  { word: 'territory', meaning: '영토', example: 'National territory.' },
+  { word: 'boundary', meaning: '경계', example: 'Cross the boundary.' },
+  { word: 'region', meaning: '지역', example: 'A mountain region.' },
+  { word: 'hemisphere', meaning: '반구', example: 'Northern hemisphere.' },
+  { word: 'colony', meaning: '식민지', example: 'An ancient colony.' },
+
+  // 접두/접미 어휘 (20)
+  { word: 'unexpected', meaning: '예상치 못한', example: 'An unexpected gift.' },
+  { word: 'unlikely', meaning: '있을 법하지 않은', example: 'It is unlikely.' },
+  { word: 'peculiar', meaning: '독특한', example: 'A peculiar habit.' },
+  { word: 'obscure', meaning: '모호한', example: 'An obscure writer.' },
+  { word: 'incredible', meaning: '믿을 수 없는', example: 'Incredible story.' },
+  { word: 'invisible', meaning: '보이지 않는', example: 'Invisible ink.' },
+  { word: 'unattainable', meaning: '달성할 수 없는', example: 'Unattainable goals.' },
+  { word: 'independent', meaning: '독립적인', example: 'Be independent.' },
+  { word: 'dependent', meaning: '의존하는', example: 'Dependent on others.' },
+  { word: 'responsible', meaning: '책임감 있는', example: 'Be responsible.' },
+  { word: 'irresponsible', meaning: '무책임한', example: 'Irresponsible act.' },
+  { word: 'reasonable', meaning: '합리적인', example: 'A reasonable price.' },
+  { word: 'unreasonable', meaning: '불합리한', example: 'Unreasonable demand.' },
+  { word: 'predictable', meaning: '예측 가능한', example: 'Predictable result.' },
+  { word: 'unpredictable', meaning: '예측 불가능한', example: 'Unpredictable weather.' },
+  { word: 'remarkable', meaning: '놀라운, 주목할 만한', example: 'Remarkable talent.' },
+  { word: 'memorable', meaning: '기억에 남을', example: 'A memorable day.' },
+  { word: 'enjoyable', meaning: '즐거운', example: 'An enjoyable trip.' },
+  { word: 'comfortable', meaning: '편안한', example: 'A comfortable chair.' },
+  { word: 'uncomfortable', meaning: '불편한', example: 'Uncomfortable seat.' },
+
+  // 형용사 심화 (25)
+  { word: 'primitive', meaning: '원시적인', example: 'Primitive tools.' },
+  { word: 'contemporary', meaning: '현대의, 동시대의', example: 'Contemporary art.' },
+  { word: 'eternal', meaning: '영원한', example: 'Eternal love.' },
+  { word: 'lasting', meaning: '지속되는', example: 'A lasting impact.' },
+  { word: 'transient', meaning: '일시적인', example: 'A transient visitor.' },
+  { word: 'constant', meaning: '지속적인', example: 'Constant noise.' },
+  { word: 'frequent', meaning: '빈번한', example: 'Frequent visits.' },
+  { word: 'scarce', meaning: '부족한', example: 'Scarce resources.' },
+  { word: 'immediate', meaning: '즉각적인', example: 'An immediate reply.' },
+  { word: 'instant', meaning: '즉각적인', example: 'Instant noodles.' },
+  { word: 'sudden', meaning: '갑작스러운', example: 'A sudden change.' },
+  { word: 'gradual', meaning: '점진적인', example: 'Gradual progress.' },
+  { word: 'significant', meaning: '중요한', example: 'A significant event.' },
+  { word: 'crucial', meaning: '결정적인', example: 'A crucial moment.' },
+  { word: 'essential', meaning: '필수적인', example: 'Essential skills.' },
+  { word: 'fundamental', meaning: '근본적인', example: 'Fundamental rights.' },
+  { word: 'basic', meaning: '기본적인', example: 'Basic knowledge.' },
+  { word: 'advanced', meaning: '고급의', example: 'Advanced level.' },
+  { word: 'elementary', meaning: '초급의', example: 'Elementary school.' },
+  { word: 'intermediate', meaning: '중급의', example: 'Intermediate class.' },
+  { word: 'superior', meaning: '우수한', example: 'Superior quality.' },
+  { word: 'inferior', meaning: '열등한', example: 'Inferior product.' },
+  { word: 'ultimate', meaning: '궁극적인', example: 'Ultimate goal.' },
+  { word: 'initial', meaning: '처음의', example: 'Initial reaction.' },
+  { word: 'final', meaning: '마지막의', example: 'The final exam.' },
+
+  // 기술/미래 (15)
+  { word: 'artificial intelligence', meaning: '인공지능', example: 'AI is advancing.' },
+  { word: 'virtual', meaning: '가상의', example: 'Virtual reality.' },
+  { word: 'digital', meaning: '디지털의', example: 'Digital age.' },
+  { word: 'wireless', meaning: '무선의', example: 'Wireless internet.' },
+  { word: 'automatic', meaning: '자동의', example: 'Automatic doors.' },
+  { word: 'electronic', meaning: '전자의', example: 'Electronic device.' },
+  { word: 'innovative', meaning: '혁신적인', example: 'Innovative design.' },
+  { word: 'cutting-edge', meaning: '최첨단의', example: 'Cutting-edge technology.' },
+  { word: 'intricate', meaning: '복잡한', example: 'Intricate design.' },
+  { word: 'sophisticated', meaning: '정교한', example: 'Sophisticated software.' },
+  { word: 'efficient', meaning: '효율적인', example: 'Efficient system.' },
+  { word: 'productive', meaning: '생산적인', example: 'Productive day.' },
+  { word: 'creative', meaning: '창의적인', example: 'Creative mind.' },
+  { word: 'groundbreaking', meaning: '획기적인', example: 'A groundbreaking idea.' },
+  { word: 'revolutionary', meaning: '혁명적인', example: 'A revolutionary product.' },
+];
+
+
+// ====================================================================
+// 레벨 정의
+// ====================================================================
+const LEVELS = {
+  phonics: { id: 'phonics', name: '파닉스', data: PHONICS_DATA, color: '#FFB84D', icon: '🔤', category: 'basic' },
+  mid1:    { id: 'mid1',    name: '중등 Level 1', data: MID_L1, color: '#6BCBEF', icon: '⭐', category: 'middle' },
+  mid2:    { id: 'mid2',    name: '중등 Level 2', data: MID_L2, color: '#FFA07A', icon: '🌟', category: 'middle' },
+  mid3:    { id: 'mid3',    name: '중등 Level 3', data: MID_L3, color: '#98D8C8', icon: '💫', category: 'middle' },
+  mid4:    { id: 'mid4',    name: '중등 Level 4', data: MID_L4, color: '#C589E8', icon: '✨', category: 'middle' },
+};
+
+// 모든 단어를 한 번에 조회할 수 있는 맵 (word -> {data, levelId})
+const WORD_INDEX = {};
+Object.values(LEVELS).forEach(level => {
+  level.data.forEach(item => {
+    const key = level.id === 'phonics' ? item.example : item.word;
+    WORD_INDEX[key + '__' + level.id] = { ...item, levelId: level.id, key };
+  });
+});
+
+// ====================================================================
+// localStorage 기반 저장소
+// ====================================================================
+const STORAGE_KEY = 'vocab_middle_v1';
+
+function loadData() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return defaultData();
+    const data = JSON.parse(raw);
+    // 날짜 경계 처리: 스트릭 업데이트
+    return migrateData(data);
+  } catch (e) {
+    console.error('Load error:', e);
+    return defaultData();
+  }
+}
+
+function saveData(data) {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  } catch (e) {
+    console.error('Save error:', e);
+  }
+}
+
+function defaultData() {
+  return {
+    // wordStatus[key] = { level: 0-4, correctCount, mistakes, nextReview: timestamp, lastStudy: timestamp }
+    // key는 "word__levelId" 형식
+    wordStatus: {},
+    streak: 0,
+    lastActiveDate: null,   // 'YYYY-MM-DD'
+    dailyProgress: {},      // { 'YYYY-MM-DD': { newWordsDone: [], reviewsDone: [] } }
+    dailyGoal: 10,
+  };
+}
+
+function migrateData(data) {
+  const base = defaultData();
+  return { ...base, ...data, wordStatus: data.wordStatus || {}, dailyProgress: data.dailyProgress || {} };
+}
+
+function todayStr() {
+  const d = new Date();
+  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+}
+
+function daysBetween(dateStr1, dateStr2) {
+  const d1 = new Date(dateStr1);
+  const d2 = new Date(dateStr2);
+  return Math.round((d2 - d1) / (1000 * 60 * 60 * 24));
+}
+
+// ====================================================================
+// 망각 곡선 (Spaced Repetition) - 단순화된 SM-2
+// 숙련도 level: 0=미학습, 1=학습중(1일뒤), 2=복습필요(3일뒤), 3=거의완성(7일뒤), 4=마스터(14일뒤)
+// ====================================================================
+const REVIEW_INTERVALS_DAYS = [0, 1, 3, 7, 14, 30]; // index = mastery level after review
+
+function calculateNextReview(currentLevel, isCorrect) {
+  let newLevel;
+  if (isCorrect) newLevel = Math.min(4, currentLevel + 1);
+  else newLevel = Math.max(1, currentLevel - 1);
+  const days = REVIEW_INTERVALS_DAYS[newLevel] ?? 1;
+  const nextReview = Date.now() + days * 24 * 60 * 60 * 1000;
+  return { newLevel, nextReview };
+}
+
+// ====================================================================
+// 오늘의 학습 준비: 복습 예정 단어 + 신규 단어
+// ====================================================================
+function getTodaysReviewWords(state) {
+  const now = Date.now();
+  const reviews = [];
+  Object.entries(state.wordStatus).forEach(([key, status]) => {
+    if (status.level > 0 && status.level < 4 && status.nextReview && status.nextReview <= now) {
+      const entry = WORD_INDEX[key];
+      if (entry) reviews.push({ ...entry, status });
+    }
+  });
+  return reviews;
+}
+
+function getNextNewWords(state, count) {
+  const result = [];
+  for (const level of Object.values(LEVELS)) {
+    for (const item of level.data) {
+      const key = (level.id === 'phonics' ? item.example : item.word) + '__' + level.id;
+      const status = state.wordStatus[key];
+      if (!status || status.level === 0) {
+        result.push({ ...item, levelId: level.id, key });
+        if (result.length >= count) return result;
+      }
+    }
+  }
+  return result;
+}
+
+// ====================================================================
+// 상태 & 렌더링
+// ====================================================================
+let state = loadData();
+let screenState = { current: 'home', level: null, sessionWords: null, quizResult: null };
+
+// 스트릭 업데이트: 앱 로드 시 1회 체크
+(function updateStreak() {
+  const today = todayStr();
+  if (state.lastActiveDate === today) return; // 오늘 이미 방문
+  if (state.lastActiveDate) {
+    const diff = daysBetween(state.lastActiveDate, today);
+    if (diff === 1) state.streak = (state.streak || 0) + 1;
+    else if (diff > 1) state.streak = 1; // 스트릭 리셋 후 새로 1일차
+    else state.streak = state.streak || 1;
+  } else {
+    state.streak = 1;
+  }
+  state.lastActiveDate = today;
+  saveData(state);
+})();
+
+function render() {
+  const app = document.getElementById('app');
+  app.innerHTML = renderTopBar() + renderScreen();
+  attachHandlers();
+}
+
+function renderTopBar() {
+  const allWords = Object.values(LEVELS).flatMap(l => l.data.map(w => ({ key: (l.id==='phonics'? w.example : w.word) + '__' + l.id })));
+  const total = allWords.length;
+  const mastered = allWords.filter(w => (state.wordStatus[w.key]?.level || 0) >= 4).length;
+  const learning = allWords.filter(w => { const lv = state.wordStatus[w.key]?.level || 0; return lv > 0 && lv < 4; }).length;
+  const pct = Math.round((mastered / total) * 100);
+
+  return `
+    <div class="topbar">
+      <div class="topbar-inner">
+        <div class="progress-section">
+          <div class="progress-label">
+            <span>🏆</span><span>전체 진도율</span>
+            <span class="progress-percent">${pct}%</span>
+          </div>
+          <div class="progress-bar-bg">
+            <div class="progress-bar-fill" style="width:${Math.max(pct,2)}%"></div>
+            <div class="progress-shimmer"></div>
+          </div>
+          <div class="progress-stats">
+            <span><b style="color:#2EC27E">${mastered}</b> 마스터</span>
+            <span style="color:#aaa">·</span>
+            <span><b style="color:#FF9EC7">${learning}</b> 학습 중</span>
+            <span style="color:#aaa">·</span>
+            <span>총 <b>${total}</b>단어</span>
+          </div>
+        </div>
+        <div class="streak-badge">
+          <span style="font-size:20px">🔥</span>
+          <span class="streak-num">${state.streak || 0}</span>
+          <span class="streak-label">일</span>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function renderScreen() {
+  switch (screenState.current) {
+    case 'home':   return renderHome();
+    case 'learn':  return renderLearn();
+    case 'quiz':   return renderQuiz();
+    case 'result': return renderResult();
+    case 'master': return renderMasterList();
+    case 'daily':  return renderDailyLearn();
+    default:       return renderHome();
+  }
+}
+
+// ====================================================================
+// 홈 화면
+// ====================================================================
+function renderHome() {
+  const today = todayStr();
+  const reviews = getTodaysReviewWords(state);
+  const progress = state.dailyProgress[today] || { newWordsDone: [], reviewsDone: [] };
+  const newDone = progress.newWordsDone.length;
+  const reviewDone = progress.reviewsDone.length;
+  const goalTotal = state.dailyGoal + reviews.length;
+  const completedTotal = newDone + reviewDone;
+  const isDone = completedTotal >= goalTotal;
+
+  const allWords = Object.values(LEVELS).flatMap(l => l.data.map(w => ({ key: (l.id==='phonics'? w.example : w.word) + '__' + l.id })));
+  const mastered = allWords.filter(w => (state.wordStatus[w.key]?.level || 0) >= 4).length;
+
+  return `
+    <div class="screen">
+      <div class="hero">
+        <div class="hero-emoji">📖</div>
+        <h1 class="hero-title">중등 영단어 마스터</h1>
+        <p class="hero-subtitle">중학교 필수 어휘 800개, 체계적으로 정복하기!</p>
+      </div>
+
+      <div class="daily-card">
+        <div class="daily-label">📌 오늘의 학습</div>
+        <div class="daily-title">${isDone ? '오늘 목표 달성! 🎉' : '오늘도 꾸준히 해볼까요?'}</div>
+        <div class="daily-info">
+          <div class="daily-stat">
+            <span class="daily-stat-num">${Math.min(newDone, state.dailyGoal)}/${state.dailyGoal}</span>
+            <span class="daily-stat-label">신규</span>
+          </div>
+          <div class="daily-stat">
+            <span class="daily-stat-num">${reviewDone}/${reviews.length}</span>
+            <span class="daily-stat-label">복습</span>
+          </div>
+        </div>
+        <button class="daily-btn ${isDone ? 'daily-done' : ''}" data-action="start-daily">
+          ${isDone ? '✓ 오늘 학습 완료! 다시 풀기' : '🚀 오늘의 학습 시작하기'}
+        </button>
+      </div>
+
+      <button class="master-btn" data-action="view-master">
+        <span>📋</span>
+        <span>내가 마스터한 단어 보기 (${mastered}개)</span>
+        <span class="master-btn-arrow">→</span>
+      </button>
+
+      ${renderSection('🔤', '기초 다지기', ['phonics'])}
+      ${renderSection('📖', '중등 영단어 800', ['mid1','mid2','mid3','mid4'])}
+
+      <button class="reset-btn" data-action="reset">데이터 초기화</button>
+    </div>
+  `;
+}
+
+function renderSection(emoji, title, levelIds) {
+  const cards = levelIds.map(id => renderLevelCard(LEVELS[id])).join('');
+  return `
+    <div class="section-title">
+      <span class="section-emoji">${emoji}</span>
+      <h2>${title}</h2>
+      <div class="section-line"></div>
+    </div>
+    <div class="level-grid">${cards}</div>
+  `;
+}
+
+function renderLevelCard(level) {
+  const total = level.data.length;
+  const mastered = level.data.filter(item => {
+    const key = (level.id === 'phonics' ? item.example : item.word) + '__' + level.id;
+    return (state.wordStatus[key]?.level || 0) >= 4;
+  }).length;
+  const pct = total > 0 ? Math.round((mastered / total) * 100) : 0;
+
+  return `
+    <button class="level-card" style="background: linear-gradient(135deg, ${level.color}, ${level.color}dd);" data-action="select-level" data-level="${level.id}">
+      <div class="level-card-top">
+        <span class="level-icon">${level.icon}</span>
+        ${pct === 100 ? '<div class="completed-badge">✓ 완료</div>' : ''}
+      </div>
+      <div class="level-name">${level.name}</div>
+      <div class="level-count">${mastered} / ${total} 단어</div>
+      <div class="level-progress-bg">
+        <div class="level-progress-fill" style="width:${pct}%"></div>
+      </div>
+    </button>
+  `;
+}
+
+// ====================================================================
+// 학습 화면 (플립 카드)
+// ====================================================================
+let learnState = { idx: 0, flipped: false };
+
+function renderLearn() {
+  const level = screenState.level;
+  const data = level.data;
+  const current = data[learnState.idx];
+  const pct = ((learnState.idx + 1) / data.length) * 100;
+
+  if (level.id === 'phonics') {
+    return `
+      <div class="screen">
+        ${renderBackHeader(level.name, `${learnState.idx+1} / ${data.length}`)}
+        <div class="learn-progress-bg">
+          <div class="learn-progress-fill" style="width:${pct}%; background:${level.color}"></div>
+        </div>
+        <div class="phonics-card" style="background: linear-gradient(135deg, ${level.color}20, ${level.color}35)">
+          <div class="phonics-letter">${current.letter}</div>
+          <div class="phonics-sound">[ ${current.sound} ]</div>
+          <button class="sound-btn" data-action="speak" data-text="${current.example}">
+            <span>🔊</span> 발음 듣기
+          </button>
+          <div class="phonics-divider"></div>
+          <div class="phonics-example">${current.example}</div>
+          <div class="phonics-meaning">${current.meaning}</div>
+        </div>
+        ${renderNavButtons(learnState.idx === 0, learnState.idx === data.length - 1)}
+      </div>
+    `;
+  }
+
+  const key = current.word + '__' + level.id;
+  const status = state.wordStatus[key];
+  const starsHtml = status ? renderStars(status.level) : '';
+
+  return `
+    <div class="screen">
+      ${renderBackHeader(level.name, `${learnState.idx+1} / ${data.length}`)}
+      <div class="learn-progress-bg">
+        <div class="learn-progress-fill" style="width:${pct}%; background:${level.color}"></div>
+      </div>
+      <div class="word-card-container">
+        <div class="word-card ${learnState.flipped ? 'flipped' : ''}" data-action="flip">
+          <div class="word-card-face word-card-front" style="background: linear-gradient(135deg, ${level.color}, ${level.color}cc)">
+            ${starsHtml}
+            <div class="word-text">${current.word}</div>
+            <button class="word-sound-btn" data-action="speak" data-text="${current.word}" data-stop-propagation="1">🔊</button>
+            <div class="flip-hint">카드를 눌러 뜻 보기 👆</div>
+          </div>
+          <div class="word-card-face word-card-back">
+            <div class="meaning-label">뜻</div>
+            <div class="meaning-text">${current.meaning}</div>
+            <div class="example-box">
+              <div class="example-label">예문</div>
+              <div class="example-text">${current.example}</div>
+              <button class="example-sound-btn" data-action="speak" data-text="${current.example}" data-stop-propagation="1">🔊</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      ${renderNavButtons(learnState.idx === 0, learnState.idx === data.length - 1)}
+    </div>
+  `;
+}
+
+function renderStars(level) {
+  const filled = '⭐'.repeat(Math.min(level, 4));
+  const empty = '☆'.repeat(Math.max(0, 4 - level));
+  return `<div class="mastery-stars"><span class="star" style="color:#FFD54F">${filled}</span><span class="star" style="color:#ffffff88">${empty}</span></div>`;
+}
+
+function renderBackHeader(title, subtitle) {
+  return `
+    <div class="back-header">
+      <button class="back-btn" data-action="back">←</button>
+      <div>
+        <div class="back-header-title">${title}</div>
+        ${subtitle ? `<div class="back-header-sub">${subtitle}</div>` : ''}
+      </div>
+    </div>
+  `;
+}
+
+function renderNavButtons(isFirst, isLast) {
+  return `
+    <div class="nav-btns">
+      <button class="nav-btn" data-action="prev" ${isFirst ? 'disabled' : ''}>← 이전</button>
+      <button class="nav-btn nav-btn-primary" data-action="next">${isLast ? '🎯 테스트 시작!' : '다음 →'}</button>
+    </div>
+  `;
+}
+
+// ====================================================================
+// 퀴즈 화면
+// ====================================================================
+let quizState = { questions: [], idx: 0, score: 0, wrongWords: [], selected: null, showFeedback: false, userInput: '' };
+
+function startQuiz(data, levelId, title) {
+  quizState = {
+    questions: generateQuestions(data, levelId),
+    idx: 0, score: 0, wrongWords: [],
+    selected: null, showFeedback: false, userInput: '',
+    title: title || '테스트'
+  };
+  screenState.current = 'quiz';
+  render();
+}
+
+function generateQuestions(data, levelId) {
+  if (levelId === 'phonics') {
+    return data.map(item => {
+      const others = data.filter(d => d.letter !== item.letter).sort(() => Math.random() - 0.5).slice(0, 3);
+      const choices = [item.example, ...others.map(o => o.example)].sort(() => Math.random() - 0.5);
+      return { type: 'phonics', typeLabel: '🔤 글자에 맞는 단어 고르기',
+               question: `"${item.letter}" 로 시작하는 단어는?`,
+               word: item.example, meaning: item.meaning, choices, correct: item.example, levelId };
+    });
+  }
+  const types = ['word-to-meaning', 'meaning-to-word', 'listen', 'spelling'];
+  return data.map((item, i) => {
+    const type = types[i % types.length];
+    const pool = data.length >= 4 ? data : data.concat(data);
+    const others = pool.filter(d => d.word !== item.word).sort(() => Math.random() - 0.5).slice(0, 3);
+    if (type === 'word-to-meaning') {
+      const choices = [item.meaning, ...others.map(o => o.meaning)].sort(() => Math.random() - 0.5);
+      return { type, typeLabel: '📖 단어의 뜻은?', question: item.word, word: item.word, meaning: item.meaning, choices, correct: item.meaning, levelId };
+    }
+    if (type === 'meaning-to-word') {
+      const choices = [item.word, ...others.map(o => o.word)].sort(() => Math.random() - 0.5);
+      return { type, typeLabel: '💭 이 뜻의 영단어는?', question: item.meaning, word: item.word, meaning: item.meaning, choices, correct: item.word, levelId };
+    }
+    if (type === 'listen') {
+      const choices = [item.word, ...others.map(o => o.word)].sort(() => Math.random() - 0.5);
+      return { type, typeLabel: '🎧 듣고 맞는 단어 고르기', question: item.word, word: item.word, meaning: item.meaning, choices, correct: item.word, levelId };
+    }
+    return { type, typeLabel: '✍️ 직접 써보기', question: item.meaning, word: item.word, meaning: item.meaning, correct: item.word, levelId };
+  });
+}
+
+function renderQuiz() {
+  const q = quizState.questions[quizState.idx];
+  const pct = ((quizState.idx + 1) / quizState.questions.length) * 100;
+
+  let questionHtml = '';
+  if (q.type === 'listen') {
+    questionHtml = `<button class="big-sound-btn" data-action="speak" data-text="${q.question}"><span class="icon">🔊</span><span>발음 듣기</span></button>`;
+  } else {
+    const soundBtn = q.type === 'word-to-meaning' 
+      ? `<button class="small-sound-btn" data-action="speak" data-text="${q.word}">🔊</button>` : '';
+    questionHtml = `<div class="question-text">${q.question}</div>${soundBtn}`;
+  }
+
+  let answerHtml = '';
+  if (q.type === 'spelling') {
+    const inputClass = quizState.showFeedback 
+      ? (quizState.selected === q.correct.toLowerCase() ? 'correct' : 'wrong') : '';
+    const showAnswer = quizState.showFeedback && quizState.selected !== q.correct.toLowerCase()
+      ? `<div class="correct-answer-box">정답: <b>${q.correct}</b></div>` : '';
+    answerHtml = `
+      <input class="spelling-input ${inputClass}" id="spelling-input" type="text" 
+             value="${escapeAttr(quizState.userInput)}" placeholder="영어로 입력하세요" 
+             ${quizState.showFeedback ? 'disabled' : 'autofocus'}>
+      ${!quizState.showFeedback ? '<button class="submit-btn" data-action="submit-spelling">확인</button>' : ''}
+      ${showAnswer}
+    `;
+  } else {
+    answerHtml = `<div class="choices">${q.choices.map((choice, i) => {
+      let cls = 'choice-btn';
+      let mark = '';
+      if (quizState.showFeedback) {
+        if (choice === q.correct) { cls += ' correct'; mark = '<span class="choice-mark">✓</span>'; }
+        else if (choice === quizState.selected) { cls += ' wrong'; mark = '<span class="choice-mark">✗</span>'; }
+        else cls += ' disabled-choice';
+      }
+      return `<button class="${cls}" data-action="answer" data-choice="${escapeAttr(choice)}" ${quizState.showFeedback ? 'disabled':''}>
+        <span class="choice-number">${i+1}</span><span class="choice-text">${choice}</span>${mark}
+      </button>`;
+    }).join('')}</div>`;
+  }
+
+  const feedbackHtml = quizState.showFeedback ? renderFeedback(q) : '';
+
+  return `
+    <div class="screen">
+      ${renderBackHeader(quizState.title, `${quizState.idx+1} / ${quizState.questions.length}`)}
+      <div class="learn-progress-bg">
+        <div class="learn-progress-fill" style="width:${pct}%; background:#FF9EC7"></div>
+      </div>
+      <div class="quiz-score">🎯 현재 점수: <b>${quizState.score}</b> / ${quizState.questions.length}</div>
+      <div class="quiz-card">
+        <div class="quiz-type-label">${q.typeLabel}</div>
+        <div class="quiz-question">${questionHtml}</div>
+        ${answerHtml}
+      </div>
+      ${feedbackHtml}
+    </div>
+  `;
+}
+
+function renderFeedback(q) {
+  const userAnswer = quizState.selected;
+  const isCorrect = userAnswer === q.correct || userAnswer === q.correct.toLowerCase();
+  const isLast = quizState.idx >= quizState.questions.length - 1;
+  return `
+    <div class="feedback-bar">
+      <div class="feedback-msg">
+        ${isCorrect 
+          ? '<span>✨</span><b style="color:#2EC27E">정답이에요!</b>' 
+          : '<span>❌</span><b style="color:#EF4444">아쉬워요. 다시 외워봐요!</b>'}
+      </div>
+      <button class="feedback-btn" data-action="next-question">${isLast ? '결과 보기 🎉' : '다음 문제 →'}</button>
+    </div>
+  `;
+}
+
+function escapeAttr(s) {
+  return String(s).replace(/"/g, '&quot;').replace(/'/g, '&#39;').replace(/</g,'&lt;');
+}
+
+// ====================================================================
+// 결과 화면
+// ====================================================================
+function renderResult() {
+  const r = screenState.quizResult;
+  const pct = Math.round((r.score / r.total) * 100);
+  const emoji = pct === 100 ? '🏆' : pct >= 80 ? '🌟' : '💪';
+  const title = pct === 100 ? '완벽해요!' : pct >= 80 ? '잘했어요!' : '조금만 더!';
+
+  const wrongSection = r.wrongWords.length > 0 ? `
+    <div class="wrong-section">
+      <div class="wrong-title">🔄 다시 외워야 할 단어 (${r.wrongWords.length}개)</div>
+      <div class="wrong-list">
+        ${r.wrongWords.map(w => `<div class="wrong-item"><span class="wrong-word">${w.word}</span><span class="wrong-meaning">${w.meaning}</span></div>`).join('')}
+      </div>
+    </div>
+  ` : '';
+
+  const perfectBadge = pct === 100 ? `<div class="perfect-badge">⚡ 완벽 정답! 망각곡선에 맞춰 복습일이 정해졌어요</div>` : '';
+
+  return `
+    <div class="screen">
+      <div class="result-container">
+        <div class="result-emoji">${emoji}</div>
+        <div class="result-title">${title}</div>
+        <div class="result-score">
+          <span class="result-score-num">${r.score}</span>
+          <span class="result-score-total"> / ${r.total}</span>
+        </div>
+        <div class="result-pct">정답률 ${pct}%</div>
+        <div class="result-progress-bg"><div class="result-progress-fill" style="width:${pct}%"></div></div>
+        ${wrongSection}
+        ${perfectBadge}
+        <div class="result-btns">
+          <button class="result-btn result-btn-secondary" data-action="go-home">🏠 홈으로</button>
+          <button class="result-btn result-btn-primary" data-action="retry">🔄 다시 도전!</button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+// ====================================================================
+// 마스터 단어장
+// ====================================================================
+let masterFilter = 'all';
+
+function renderMasterList() {
+  const allWords = [];
+  Object.values(LEVELS).forEach(level => {
+    level.data.forEach(item => {
+      const key = (level.id === 'phonics' ? item.example : item.word) + '__' + level.id;
+      const status = state.wordStatus[key] || { level: 0 };
+      const displayWord = level.id === 'phonics' ? item.example : item.word;
+      allWords.push({ word: displayWord, meaning: item.meaning, example: item.example || '', levelName: level.name, levelColor: level.color, mastery: status.level });
+    });
+  });
+
+  const counts = {
+    all: allWords.length,
+    mastered: allWords.filter(w => w.mastery >= 4).length,
+    learning: allWords.filter(w => w.mastery > 0 && w.mastery < 4).length,
+    new: allWords.filter(w => w.mastery === 0).length,
+  };
+
+  const filtered = allWords.filter(w => {
+    if (masterFilter === 'mastered') return w.mastery >= 4;
+    if (masterFilter === 'learning') return w.mastery > 0 && w.mastery < 4;
+    if (masterFilter === 'new') return w.mastery === 0;
+    return true;
+  });
+
+  const emptyMessages = {
+    mastered: '아직 마스터한 단어가 없어요.\n학습을 시작해볼까요?',
+    learning: '학습 중인 단어가 없어요.',
+    new: '모든 단어를 학습했네요! 🎉'
+  };
+
+  const filterColors = { all: '#666', mastered: '#2EC27E', learning: '#FF9EC7', new: '#aaa' };
+  const filterLabels = { all: '전체', mastered: '마스터', learning: '학습 중', new: '미학습' };
+
+  const tabs = Object.keys(filterLabels).map(k => {
+    const active = masterFilter === k;
+    const color = filterColors[k];
+    return `<button class="filter-tab ${active?'active':''}" 
+             style="${active ? `background:${color}; border-color:${color}` : ''}" 
+             data-action="filter" data-filter="${k}">
+             ${filterLabels[k]} <span style="opacity:0.8; font-size:12px">(${counts[k]})</span>
+           </button>`;
+  }).join('');
+
+  const listHtml = filtered.length === 0 
+    ? `<div class="empty-state"><div class="empty-emoji">📭</div><div class="empty-text">${emptyMessages[masterFilter] || ''}</div></div>`
+    : `<div class="word-list">${filtered.map(w => `
+        <div class="word-item">
+          <div class="word-item-badge" style="background:${w.levelColor}">${w.levelName}</div>
+          <div class="word-item-main">
+            <div class="word-item-head">
+              <span class="word-item-word">${w.word}</span>
+              <button class="word-item-sound" data-action="speak" data-text="${escapeAttr(w.word)}">🔊</button>
+            </div>
+            <div class="word-item-meaning">${w.meaning}</div>
+          </div>
+          <div class="word-item-status">
+            ${w.mastery >= 4 ? '<div class="mastered-tag">✓ 마스터</div>' 
+              : w.mastery > 0 ? renderStars(w.mastery).replace('mastery-stars','mastery-stars').replace('color:#ffffff88','color:#ddd')
+              : '<div class="new-tag">새 단어</div>'}
+          </div>
+        </div>`).join('')}</div>`;
+
+  return `
+    <div class="screen">
+      ${renderBackHeader('나의 단어장', `총 ${allWords.length}개 단어`)}
+      <div class="filter-tabs">${tabs}</div>
+      ${listHtml}
+    </div>
+  `;
+}
+
+// ====================================================================
+// 이벤트 핸들러
+// ====================================================================
+function attachHandlers() {
+  document.querySelectorAll('[data-action]').forEach(el => {
+    const action = el.getAttribute('data-action');
+    // 카드 플립 이벤트는 상위에 걸되, 내부 버튼은 stopPropagation
+    el.addEventListener('click', (e) => {
+      if (el.getAttribute('data-stop-propagation')) e.stopPropagation();
+      handleAction(action, el, e);
+    });
+  });
+  const spellingInput = document.getElementById('spelling-input');
+  if (spellingInput && !quizState.showFeedback) {
+    spellingInput.focus();
+    spellingInput.addEventListener('input', (e) => { quizState.userInput = e.target.value; });
+    spellingInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') handleAction('submit-spelling');
+    });
+  }
+}
+
+function handleAction(action, el, event) {
+  switch (action) {
+    case 'speak':
+      speak(el.getAttribute('data-text'));
+      break;
+    case 'select-level': {
+      const lvlId = el.getAttribute('data-level');
+      screenState.level = LEVELS[lvlId];
+      screenState.current = 'learn';
+      learnState = { idx: 0, flipped: false };
+      render();
+      break;
+    }
+    case 'view-master':
+      screenState.current = 'master';
+      render();
+      break;
+    case 'filter':
+      masterFilter = el.getAttribute('data-filter');
+      render();
+      break;
+    case 'back':
+      if (screenState.current === 'learn' || screenState.current === 'master' || screenState.current === 'daily') {
+        screenState.current = 'home';
+      } else if (screenState.current === 'quiz') {
+        // 퀴즈 중 뒤로 = 학습화면으로
+        screenState.current = screenState.sessionWords ? 'home' : 'learn';
+      }
+      render();
+      break;
+    case 'flip':
+      learnState.flipped = !learnState.flipped;
+      render();
+      break;
+    case 'prev':
+      if (learnState.idx > 0) { learnState.idx--; learnState.flipped = false; render(); }
+      break;
+    case 'next':
+      if (learnState.idx < screenState.level.data.length - 1) {
+        learnState.idx++; learnState.flipped = false; render();
+      } else {
+        // 퀴즈 시작
+        startQuiz(screenState.level.data, screenState.level.id, screenState.level.name + ' 테스트');
+      }
+      break;
+    case 'answer': {
+      if (quizState.showFeedback) return;
+      const choice = el.getAttribute('data-choice');
+      const q = quizState.questions[quizState.idx];
+      quizState.selected = choice;
+      quizState.showFeedback = true;
+      const isCorrect = choice === q.correct;
+      if (isCorrect) quizState.score++;
+      else quizState.wrongWords.push({ word: q.word, meaning: q.meaning });
+      updateWordProgress(q, isCorrect);
+      render();
+      break;
+    }
+    case 'submit-spelling': {
+      if (quizState.showFeedback) return;
+      const q = quizState.questions[quizState.idx];
+      const answer = (quizState.userInput || '').trim().toLowerCase();
+      if (!answer) return;
+      quizState.selected = answer;
+      quizState.showFeedback = true;
+      const isCorrect = answer === q.correct.toLowerCase();
+      if (isCorrect) quizState.score++;
+      else quizState.wrongWords.push({ word: q.word, meaning: q.meaning });
+      updateWordProgress(q, isCorrect);
+      render();
+      break;
+    }
+    case 'next-question':
+      if (quizState.idx < quizState.questions.length - 1) {
+        quizState.idx++;
+        quizState.selected = null;
+        quizState.showFeedback = false;
+        quizState.userInput = '';
+        render();
+      } else {
+        // 결과로
+        screenState.quizResult = { score: quizState.score, total: quizState.questions.length, wrongWords: quizState.wrongWords };
+        screenState.current = 'result';
+        render();
+      }
+      break;
+    case 'retry':
+      // 퀴즈 재시작: 현재 레벨로
+      if (screenState.level) {
+        startQuiz(screenState.level.data, screenState.level.id, screenState.level.name + ' 테스트');
+      } else {
+        screenState.current = 'home';
+        render();
+      }
+      break;
+    case 'go-home':
+      screenState.current = 'home';
+      screenState.sessionWords = null;
+      render();
+      break;
+    case 'start-daily':
+      startDailyLearn();
+      break;
+    case 'reset':
+      if (confirm('모든 학습 기록을 초기화할까요? 이 작업은 되돌릴 수 없어요.')) {
+        state = defaultData();
+        state.streak = 1;
+        state.lastActiveDate = todayStr();
+        saveData(state);
+        screenState.current = 'home';
+        render();
+      }
+      break;
+  }
+}
+
+function updateWordProgress(question, isCorrect) {
+  const key = question.word + '__' + question.levelId;
+  const current = state.wordStatus[key] || { level: 0, correctCount: 0, mistakes: 0, nextReview: null, lastStudy: null };
+  const { newLevel, nextReview } = calculateNextReview(current.level, isCorrect);
+  state.wordStatus[key] = {
+    level: newLevel,
+    correctCount: current.correctCount + (isCorrect ? 1 : 0),
+    mistakes: current.mistakes + (isCorrect ? 0 : 1),
+    nextReview,
+    lastStudy: Date.now(),
+  };
+  // 오늘 학습 기록
+  const today = todayStr();
+  if (!state.dailyProgress[today]) state.dailyProgress[today] = { newWordsDone: [], reviewsDone: [] };
+  const daily = state.dailyProgress[today];
+  if (current.level === 0 && !daily.newWordsDone.includes(key)) daily.newWordsDone.push(key);
+  else if (current.level > 0 && !daily.reviewsDone.includes(key)) daily.reviewsDone.push(key);
+  saveData(state);
+}
+
+// ====================================================================
+// 오늘의 학습
+// ====================================================================
+function startDailyLearn() {
+  const reviews = getTodaysReviewWords(state);
+  const newWords = getNextNewWords(state, state.dailyGoal);
+  // 복습 우선 + 신규 섞어서
+  const sessionWords = [...reviews, ...newWords];
+  if (sessionWords.length === 0) {
+    alert('모든 단어를 마스터했어요! 🎉\n정말 대단해요.');
+    return;
+  }
+  // 이 단어들로 퀴즈 구성 (각 단어가 1문제씩)
+  const quizData = sessionWords.map(w => ({ word: w.word || w.example, meaning: w.meaning, example: w.example || '' }));
+  // 파닉스/일반 혼합 처리: 단순화 위해 모두 일반 단어 방식으로
+  screenState.sessionWords = sessionWords;
+  screenState.level = { id: 'daily', name: '오늘의 학습', data: quizData };
+  startQuiz(quizData, sessionWords[0].levelId || 'mid1', '오늘의 학습');
+}
+
+// ====================================================================
+// 발음 (Web Speech API)
+// ====================================================================
+function speak(text) {
+  if (!text) return;
+  if (!('speechSynthesis' in window)) return;
+  window.speechSynthesis.cancel();
+  const utter = new SpeechSynthesisUtterance(text);
+  utter.lang = 'en-US';
+  utter.rate = 0.85;
+  window.speechSynthesis.speak(utter);
+}
+
+// ====================================================================
+// 렌더 시작
+// ====================================================================
+render();
+
+</script>
+</body>
+</html>
